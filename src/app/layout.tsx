@@ -5,6 +5,9 @@ import { Toaster } from '@/components/ui/toaster';
 export const metadata: Metadata = {
   title: 'Match Tracker',
   description: 'Track football matches by day, date, or league.',
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({

@@ -1,0 +1,28 @@
+<svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <path id="circlePath" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" />
+  </defs>
+  <style>
+    .text {
+      font-family: "Inter", sans-serif;
+      font-weight: bold;
+      font-size: 38px;
+      fill: hsl(var(--primary));
+    }
+    @media (prefers-color-scheme: dark) {
+      .text {
+        fill: hsl(var(--primary));
+      }
+    }
+     @media (prefers-color-scheme: light) {
+      .text {
+        fill: hsl(var(--primary));
+      }
+    }
+  </style>
+  <text className="text">
+    <textPath href="#circlePath" startOffset="0%">F</textPath>
+    <textPath href="#circlePath" startOffset="33%">S</textPath>
+    <textPath href="#circlePath" startOffset="66%">Z</textPath>
+  </text>
+</svg>
