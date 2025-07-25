@@ -1,8 +1,20 @@
-<svg width="48" height="48" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path id="circlePath" d="M 20, 50 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0" fill="transparent"/>
-  <text font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="white">
-    <textPath href="#circlePath" startOffset="0%">F</textPath>
-    <textPath href="#circlePath" startOffset="33%">S</textPath>
-    <textPath href="#circlePath" startOffset="66%">Z</textPath>
-  </text>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="48"
+  height="48"
+  viewBox="0 0 100 100"
+>
+  <style>
+    .letter {
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      fill: white;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+  </style>
+  <text x="26" y="35" class="letter" font-size="30" transform="rotate(-30 26 35)">F</text>
+  <text x="50" y="52" class="letter" font-size="55">S</text>
+  <text x="74" y="35" class="letter" font-size="30" transform="rotate(30 74 35)">Z</text>
+  <path d="M 20 50 A 30 30 0 0 1 80 50" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" />
 </svg>
