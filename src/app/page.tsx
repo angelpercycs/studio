@@ -16,7 +16,7 @@ export default function Home() {
             width={48}
             height={48}
           />
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Fútbol Stats Zone
           </h1>
         </header>
