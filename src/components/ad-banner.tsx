@@ -18,7 +18,7 @@ export const AdBanner = () => {
     }, []);
 
     return (
-        <div className="my-4 flex justify-center items-center w-full min-h-[60px] bg-muted/30 rounded-lg overflow-hidden">
+        <div className="my-2 flex justify-center items-center w-full min-h-[60px] bg-muted/30 rounded-lg overflow-hidden">
             <ins 
                 className="adsbygoogle"
                 style={{ display: 'block', width: '100%', height: '60px', textAlign: 'center' }}
