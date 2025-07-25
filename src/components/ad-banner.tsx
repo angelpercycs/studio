@@ -18,11 +18,15 @@ export const AdBanner = () => {
     }, []);
 
     return (
-        <ins className="adsbygoogle"
-             style={{ display: 'block' }}
-             data-ad-client="ca-pub-5144766807318748" // Este es tu ID de publicador
-             data-ad-slot="PON_TU_AD_SLOT_ID_AQUI"      // <-- IMPORTANTE: Reemplaza esto
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
+        <div className="my-4 flex justify-center items-center w-full min-h-[60px] bg-muted/30 rounded-lg overflow-hidden">
+            <ins 
+                className="adsbygoogle"
+                style={{ display: 'block', width: '100%', height: '60px', textAlign: 'center' }}
+                data-ad-client="ca-pub-5144766807318748"
+                data-ad-slot="4349475283"
+                data-ad-format="auto"
+                data-full-width-responsive="true"
+            ></ins>
+        </div>
     );
 };
