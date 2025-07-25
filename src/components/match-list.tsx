@@ -4,10 +4,9 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Flag, AlertCircle, Lightbulb } from "lucide-react";
+import { Flag, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
-import { Progress } from "@/components/ui/progress";
 
 const MatchDaySkeleton = () => (
   <div className="space-y-4 mt-6">
@@ -68,39 +67,6 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
     );
 };
 
-
-const PredictionDisplay = ({ prediction, leagueId }: { prediction: any, leagueId: any }) => {
-  if (!prediction || !prediction.has_prediction) return null;
-
-  const renderPredictionText = () => {
-    if (!prediction.prediction_text || !prediction.winner_name) {
-      return <p className="text-sm text-muted-foreground mb-3">{prediction.prediction_text}</p>;
-    }
-    const parts = prediction.prediction_text.split(prediction.winner_name);
-    return (
-       <p className="text-sm text-muted-foreground mb-3">
-        {parts[0]}
-        <strong className="text-primary">{prediction.winner_name}</strong>
-        {parts[1]}
-      </p>
-    )
-  }
-
-  return (
-    <div className="my-6 p-4 rounded-lg bg-muted/50 border">
-      <div className="flex items-center gap-2 mb-2">
-        <Lightbulb className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">Sugerencia de Pronóstico</h3>
-      </div>
-      {renderPredictionText()}
-      <div className="space-y-1">
-         <label className="text-sm font-medium">Probabilidad de acierto</label>
-         <Progress value={50} className="w-full" />
-      </div>
-    </div>
-  )
-}
-
 const MatchRow = ({ match }: { match: any }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   
@@ -153,7 +119,6 @@ const MatchRow = ({ match }: { match: any }) => {
           </SheetDescription>
         </SheetHeader>
         <div className="p-4">
-          <PredictionDisplay prediction={match.prediction} leagueId={match.league_id} />
           {match.team1_standings && match.team2_standings && (
             <>
               <StandingsTable 

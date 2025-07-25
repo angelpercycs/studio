@@ -31,7 +31,7 @@ export function MatchesByLeague() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
   const [selectedRound, setSelectedRound] = useState<string | null>(null);
-  const [showOnlyPredicted, setShowOnlyPredicted] = useState(false);
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
   const [loading, setLoading] = useState({
     countries: true,
@@ -64,7 +64,7 @@ export function MatchesByLeague() {
     setRounds([]);
     setMatches([]);
     setError(null);
-    setShowOnlyPredicted(false);
+    setShowOnlyFavorites(false);
     if (!countryId) return;
 
     setLoading(prev => ({ ...prev, leagues: true }));
@@ -83,7 +83,7 @@ export function MatchesByLeague() {
     setRounds([]);
     setMatches([]);
     setError(null);
-    setShowOnlyPredicted(false);
+    setShowOnlyFavorites(false);
     if (!leagueIdSeason) return;
     
     const leagueData = leagues.find(l => l.id === leagueIdSeason);
@@ -103,7 +103,7 @@ export function MatchesByLeague() {
     setSelectedRound(round);
     setMatches([]);
     setError(null);
-    setShowOnlyPredicted(false);
+    setShowOnlyFavorites(false);
     if (!round || !selectedLeague) return;
 
     const leagueData = leagues.find(l => l.id === selectedLeague);
@@ -120,16 +120,16 @@ export function MatchesByLeague() {
     setLoading(prev => ({ ...prev, matches: false }));
   }, [selectedLeague, leagues]);
 
-  const hasAnyPrediction = useMemo(() => {
-    return !loading.matches && matches.some(match => match.prediction?.has_prediction);
+  const hasAnyFavorite = useMemo(() => {
+    return !loading.matches && matches.some(match => match.favorite);
   }, [matches, loading.matches]);
 
   const filteredMatches = useMemo(() => {
-    if (showOnlyPredicted) {
-      return matches.filter(match => match.prediction?.has_prediction);
+    if (showOnlyFavorites) {
+      return matches.filter(match => match.favorite);
     }
     return matches;
-  }, [matches, showOnlyPredicted]);
+  }, [matches, showOnlyFavorites]);
 
   return (
     <Card>
@@ -180,17 +180,17 @@ export function MatchesByLeague() {
           </div>
         </div>
         
-        {hasAnyPrediction && (
+        {hasAnyFavorite && (
             <Alert variant="destructive" className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="relative flex h-3 w-3">
                     <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
                     <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
                 </div>
-                <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con pronóstico disponibles!</AlertTitle>
+                <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con favorito disponibles!</AlertTitle>
               </div>
-              <Button onClick={() => setShowOnlyPredicted(!showOnlyPredicted)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                {showOnlyPredicted ? 'Mostrar todos' : 'Mostrar solo con pronóstico'}
+              <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
               </Button>
             </Alert>
         )}

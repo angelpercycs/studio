@@ -17,14 +17,14 @@ export function MatchesByDate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [showOnlyPredicted, setShowOnlyPredicted] = useState(false);
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
   const fetchMatches = useCallback(async (date: Date | undefined) => {
     if (!date) return;
     setLoading(true);
     setError(null);
     setMatches([]);
-    setShowOnlyPredicted(false);
+    setShowOnlyFavorites(false);
 
     const startDate = startOfDay(date).toISOString();
     const endDate = endOfDay(date).toISOString();
@@ -47,16 +47,16 @@ export function MatchesByDate() {
     }
   }, [selectedDate, fetchMatches]);
 
-  const hasAnyPrediction = useMemo(() => {
-    return !loading && matches.some(match => match.prediction?.has_prediction);
+  const hasAnyFavorite = useMemo(() => {
+    return !loading && matches.some(match => match.favorite);
   }, [matches, loading]);
 
   const filteredMatches = useMemo(() => {
-    if (showOnlyPredicted) {
-      return matches.filter(match => match.prediction?.has_prediction);
+    if (showOnlyFavorites) {
+      return matches.filter(match => match.favorite);
     }
     return matches;
-  }, [matches, showOnlyPredicted]);
+  }, [matches, showOnlyFavorites]);
 
   return (
     <Card>
@@ -87,17 +87,17 @@ export function MatchesByDate() {
             </PopoverContent>
           </Popover>
         </div>
-        {hasAnyPrediction && (
+        {hasAnyFavorite && (
           <Alert variant="destructive" className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="relative flex h-3 w-3">
                   <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
                   <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
               </div>
-              <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con pronóstico disponibles!</AlertTitle>
+              <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con favorito disponibles!</AlertTitle>
             </div>
-            <Button onClick={() => setShowOnlyPredicted(!showOnlyPredicted)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-              {showOnlyPredicted ? 'Mostrar todos' : 'Mostrar solo con pronóstico'}
+            <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+              {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
             </Button>
           </Alert>
         )}
