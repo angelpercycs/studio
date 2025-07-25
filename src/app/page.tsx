@@ -3,20 +3,15 @@ import { DailyMatches } from '@/components/daily-matches';
 import { MatchesByDate } from '@/components/matches-by-date';
 import { MatchesByLeague } from '@/components/matches-by-league';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Image from 'next/image';
+import { Icon } from '@/components/icon';
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <main className="container mx-auto flex-grow px-4 py-8 md:py-12">
         <header className="mb-8 flex items-center gap-4">
-          <Image
-            src="/icon.svg"
-            alt="Fútbol Stats Zone Logo"
-            width={48}
-            height={48}
-          />
-          <h1 className="text-2xl font-bold tracking-tight">
+          <Icon className="text-[#89CFF0]" width={48} height={48} />
+          <h1 className="text-xl font-bold tracking-tight">
             Fútbol Stats Zone
           </h1>
         </header>
