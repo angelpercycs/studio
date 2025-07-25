@@ -1,9 +1,9 @@
 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
 <style>
-    .s-letter { font: bold 40px sans-serif; fill: white; }
-    .side-letter { font: bold 20px sans-serif; fill: white; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap');
 </style>
-<text x="24" y="30" text-anchor="middle" class="s-letter">S</text>
-<text x="6" y="30" text-anchor="middle" class="side-letter">F</text>
-<text x="42" y="30" text-anchor="middle" class="side-letter">Z</text>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M24 48C37.2548 48 48 37.2548 48 24C48 10.7452 37.2548 0 24 0C10.7452 0 0 10.7452 0 24C0 37.2548 10.7452 48 24 48Z" fill="#26282B"/>
+<text x="9" y="30" font-family="Inter, sans-serif" font-weight="700" font-size="18" fill="white">F</text>
+<text x="18" y="34" font-family="Inter, sans-serif" font-weight="700" font-size="24" fill="white">S</text>
+<text x="31" y="30" font-family="Inter, sans-serif" font-weight="700" font-size="18" fill="white">Z</text>
 </svg>
