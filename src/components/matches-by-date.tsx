@@ -10,7 +10,8 @@ import { getMatchesByDate } from "@/app/actions/getMatches";
 import { MatchList } from "@/components/match-list";
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "./ui/progress";
 
 export function MatchesByDate() {
   const [matches, setMatches] = useState<any[]>([]);
@@ -88,17 +89,23 @@ export function MatchesByDate() {
           </Popover>
         </div>
         {hasAnyFavorite && (
-          <Alert variant="destructive" className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="relative flex h-3 w-3">
-                  <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
-                  <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
+          <Alert variant="destructive" className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="relative flex h-3 w-3">
+                    <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
+                    <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
+                </div>
+                <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con favorito disponibles!</AlertTitle>
               </div>
-              <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con favorito disponibles!</AlertTitle>
+              <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
+              </Button>
             </div>
-            <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-              {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
-            </Button>
+             <div className="flex items-center gap-2">
+                <Progress value={50} className="w-1/2 h-2" />
+                <AlertDescription className="text-destructive-foreground/80 text-xs font-semibold">50% de acierto</AlertDescription>
+            </div>
           </Alert>
         )}
         <MatchList matches={filteredMatches} error={error} loading={loading} />
