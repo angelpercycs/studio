@@ -6,10 +6,15 @@ import Image from 'next/image';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <main className="container mx-auto px-4 py-8 md:py-12">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <main className="container mx-auto flex-grow px-4 py-8 md:py-12">
         <header className="mb-8 flex items-center gap-4">
-          <Image src="/icon.svg" alt="Fútbol Stats Zone Logo" width={48} height={48} />
+          <Image
+            src="/icon.svg"
+            alt="Fútbol Stats Zone Logo"
+            width={48}
+            height={48}
+          />
           <h1 className="text-4xl font-bold tracking-tight">
             Fútbol Stats Zone
           </h1>
@@ -31,6 +36,9 @@ export default function Home() {
           </TabsContent>
         </Tabs>
       </main>
+      <footer className="w-full py-4 text-center text-sm text-muted-foreground">
+        © 2025 Fútbol Stats Zone. Todos los derechos reservados.
+      </footer>
     </div>
   );
 }
