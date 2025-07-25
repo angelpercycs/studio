@@ -111,27 +111,29 @@ export function MatchesByLeague() {
     if (!leagueData) return;
     
     setLoading(prev => ({ ...prev, matches: true }));
-    const { data: matches, error } = await getMatchesByRound(leagueData.league_id, leagueData.season, round);
-    setLoading(prev => ({ ...prev, matches: false }));
+    const { data: matchesByRound, error } = await getMatchesByRound(leagueData.league_id, leagueData.season, round);
+    
     if (error) {
       setError(error);
       setMatches([]);
+      setLoading(prev => ({ ...prev, matches: false }));
       return;
     }
 
-    if (matches && matches.length > 0) {
-      const { data: enrichedMatches, error: enrichError } = await getMatchesByDate(matches[0].match_date, matches[matches.length - 1].match_date);
+    if (matchesByRound && matchesByRound.length > 0) {
+      const { data: enrichedMatches, error: enrichError } = await getMatchesByDate(matchesByRound[0].match_date_iso, matchesByRound[matchesByRound.length - 1].match_date_iso);
       if (enrichError) {
         setError(enrichError);
         setMatches([]);
       } else {
-        const roundMatchIds = new Set(matches.map(m => m.id));
+        const roundMatchIds = new Set(matchesByRound.map(m => m.id));
         const finalMatches = enrichedMatches?.filter(m => roundMatchIds.has(m.id)) || [];
         setMatches(finalMatches);
       }
     } else {
         setMatches([]);
     }
+    setLoading(prev => ({ ...prev, matches: false }));
 
   }, [selectedLeague, leagues]);
 
