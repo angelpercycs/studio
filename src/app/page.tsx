@@ -21,8 +21,8 @@ export default function Home() {
           </h1>
         </header>
 
-        <div className="mb-6 flex w-full justify-center">
-          <div className="w-3/4">
+        <div className="mb-4 flex w-full justify-center">
+          <div className="w-full max-w-4xl">
             <AdBanner />
           </div>
         </div>
