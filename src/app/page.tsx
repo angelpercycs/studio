@@ -19,6 +19,22 @@ export default function Home() {
             Fútbol Stats Zone
           </h1>
         </header>
+
+        <div className="mb-8 flex w-full justify-center">
+          <div className="w-3/4">
+            <a href="#" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="https://placehold.co/970x90.png"
+                alt="Banner Ad"
+                width={970}
+                height={90}
+                className="w-full h-auto rounded-lg"
+                data-ai-hint="advertisement banner"
+              />
+            </a>
+          </div>
+        </div>
+        
         <Tabs defaultValue="daily" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="daily">Encuentros del día</TabsTrigger>
