@@ -5,8 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getMatchesByDate } from "@/app/actions/getMatches";
 import { MatchList } from "@/components/match-list";
-import { startOfDay, endOfDay, subDays, addDays } from 'date-fns';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { subDays, addDays, format } from 'date-fns';
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 export function DailyMatches() {
@@ -27,10 +27,9 @@ export function DailyMatches() {
     else if (tab === 'tomorrow') date = addDays(new Date(), 1);
     else date = new Date();
 
-    const startDate = startOfDay(date).toISOString();
-    const endDate = endOfDay(date).toISOString();
+    const dateString = format(date, 'yyyy-MM-dd');
 
-    const result = await getMatchesByDate(startDate, endDate);
+    const result = await getMatchesByDate(dateString);
     
     if (result && result.error) {
       setError(result.error);

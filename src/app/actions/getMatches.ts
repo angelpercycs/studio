@@ -1,5 +1,6 @@
 'use server';
 import { supabase } from '@/lib/supabase';
+import { startOfDay, endOfDay, parseISO } from 'date-fns';
 
 let leaguesCache: any[] | null = null;
 let leaguesMapCache: { [key: string]: any } | null = null;
@@ -191,8 +192,12 @@ function checkIsFavorite(standings: any, last3: any, last3HomeAway: any, homeAwa
 }
 
 
-export async function getMatchesByDate(startDate: string, endDate: string) {
+export async function getMatchesByDate(dateString: string) {
     try {
+        const targetDate = parseISO(dateString + 'T00:00:00Z');
+        const startDate = startOfDay(targetDate).toISOString();
+        const endDate = endOfDay(targetDate).toISOString();
+
         const { data: matchesData, error: matchesError } = await supabase
             .from('matches')
             .select(`
@@ -275,5 +280,3 @@ export async function getMatchesByDate(startDate: string, endDate: string) {
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
     }
 }
-
-    

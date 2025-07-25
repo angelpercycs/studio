@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarIcon } from "lucide-react";
 import { getMatchesByDate } from "@/app/actions/getMatches";
 import { MatchList } from "@/components/match-list";
-import { format, startOfDay, endOfDay } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -26,10 +26,8 @@ export function MatchesByDate() {
     setMatches([]);
     setShowOnlyFavorites(false);
 
-    const startDate = startOfDay(date).toISOString();
-    const endDate = endOfDay(date).toISOString();
-
-    const result = await getMatchesByDate(startDate, endDate);
+    const dateString = format(date, 'yyyy-MM-dd');
+    const result = await getMatchesByDate(dateString);
 
     if (result && result.error) {
       setError(result.error);
