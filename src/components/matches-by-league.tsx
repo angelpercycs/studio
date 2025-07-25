@@ -9,7 +9,6 @@ import { MatchList } from "./match-list";
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "./ui/button";
-import { getMatchesByDate } from "@/app/actions/getMatches";
 
 interface Country {
   id: string;
@@ -50,7 +49,7 @@ export function MatchesByLeague() {
       if (result && result.error) {
         setError(result.error);
       } else if (result && result.data) {
-        setCountries(result.data);
+        setCountries(result.data as Country[]);
       }
       setLoading(prev => ({ ...prev, countries: false }));
     };
@@ -111,30 +110,14 @@ export function MatchesByLeague() {
     if (!leagueData) return;
     
     setLoading(prev => ({ ...prev, matches: true }));
-    const { data: matchesByRound, error } = await getMatchesByRound(leagueData.league_id, leagueData.season, round);
-    
-    if (error) {
-      setError(error);
+    const result = await getMatchesByRound(leagueData.league_id, leagueData.season, round);
+    if (result && result.error) {
+      setError(result.error);
       setMatches([]);
-      setLoading(prev => ({ ...prev, matches: false }));
-      return;
-    }
-
-    if (matchesByRound && matchesByRound.length > 0) {
-      const matchIds = matchesByRound.map(m => m.id);
-      const { data: enrichedMatches, error: enrichError } = await getMatchesByDate(matchesByRound[0].match_date_iso, matchesByRound[matchesByRound.length - 1].match_date_iso);
-      if (enrichError) {
-        setError(enrichError);
-        setMatches([]);
-      } else {
-        const finalMatches = enrichedMatches?.filter(m => matchIds.includes(m.id)) || [];
-        setMatches(finalMatches);
-      }
-    } else {
-        setMatches([]);
+    } else if (result && result.data) {
+      setMatches(result.data);
     }
     setLoading(prev => ({ ...prev, matches: false }));
-
   }, [selectedLeague, leagues]);
 
   const hasAnyPrediction = useMemo(() => {
