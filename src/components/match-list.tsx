@@ -79,6 +79,7 @@ const MatchRow = ({ match }: { match: any }) => {
   const isFavoriteTeam1 = match.favorite === 'team1';
   const isFavoriteTeam2 = match.favorite === 'team2';
   const isFavorite = isFavoriteTeam1 || isFavoriteTeam2;
+  const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : match.team2?.name;
 
   const BlinkingLight = () => (
     <div className="relative flex h-3 w-3 mx-2">
@@ -121,7 +122,10 @@ const MatchRow = ({ match }: { match: any }) => {
               <span className="text-xs">Resultados de liga, dentro de los 90 minutos reglamentarios.</span>
           </SheetDescription>
            {isFavorite && (
-              <div className="mt-2 space-y-1">
+              <div className="mt-4 space-y-2 text-center">
+                  <p className="text-sm font-bold text-primary">
+                    Favorito a ganar: {favoriteTeamName}
+                  </p>
                   <Progress value={50} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
                   <p className="text-xs font-semibold text-primary">Predicción con 50% de acierto</p>
               </div>
