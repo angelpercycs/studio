@@ -225,9 +225,9 @@ export async function getLeaguesByCountry(countryId: string) {
 
         const leaguesWithSeasons = data.map(league => {
             return {
-                id: `${league.id}-${league.season}`, // Unique ID for frontend select
+                id: `${league.id}-${league.season}`,
                 name: `${league.name} (${league.season})`,
-                league_id: league.id, // The actual league_id (e.g., 'DZ_LIG1')
+                league_id: league.id,
                 season: league.season
             };
         });
@@ -285,8 +285,8 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
                 team1_score,
                 team2_score,
                 matchday,
-                team1:teams(id, name),
-                team2:teams(id, name)
+                team1:teams!matches_team1_id_fkey(id, name),
+                team2:teams!matches_team2_id_fkey(id, name)
             `)
             .eq('league_id', leagueId)
             .eq('season', season)
@@ -353,3 +353,5 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
     }
 }
+
+    

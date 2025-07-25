@@ -206,8 +206,8 @@ export async function getMatchesByDate(startDate: string, endDate: string) {
                 team1_score,
                 team2_score,
                 matchday,
-                team1:teams(id, name),
-                team2:teams(id, name)
+                team1:teams!matches_team1_id_fkey(id, name),
+                team2:teams!matches_team2_id_fkey(id, name)
             `)
             .gte('match_date', startDate)
             .lte('match_date', endDate)
@@ -275,3 +275,5 @@ export async function getMatchesByDate(startDate: string, endDate: string) {
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
     }
 }
+
+    
