@@ -1,53 +1,230 @@
 "use client";
 
-import {
-  Select,
-  SelectContent,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { MatchList } from "@/components/match-list";
+import { getCountries, getLeaguesByCountry, getRoundsForLeague, getMatchesByRound } from "@/app/actions/getRoundData";
+import { MatchList } from "./match-list";
+import { Skeleton } from "./ui/skeleton";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button } from "./ui/button";
+import { getMatchesByDate } from "@/app/actions/getMatches";
+
+interface Country {
+  id: string;
+  name: string;
+}
+
+interface League {
+  id: string;
+  name: string;
+  league_id: string;
+  season: string;
+}
 
 export function MatchesByLeague() {
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [rounds, setRounds] = useState<string[]>([]);
+  const [matches, setMatches] = useState<any[]>([]);
+
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
+  const [selectedRound, setSelectedRound] = useState<string | null>(null);
+  const [showOnlyPredicted, setShowOnlyPredicted] = useState(false);
+
+  const [loading, setLoading] = useState({
+    countries: true,
+    leagues: false,
+    rounds: false,
+    matches: false,
+  });
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setLoading(prev => ({ ...prev, countries: true }));
+      setError(null);
+      const result = await getCountries();
+      if (result && result.error) {
+        setError(result.error);
+      } else if (result && result.data) {
+        setCountries(result.data);
+      }
+      setLoading(prev => ({ ...prev, countries: false }));
+    };
+    fetchCountries();
+  }, []);
+
+  const handleCountryChange = useCallback(async (countryId: string) => {
+    setSelectedCountry(countryId);
+    setSelectedLeague(null);
+    setSelectedRound(null);
+    setLeagues([]);
+    setRounds([]);
+    setMatches([]);
+    setError(null);
+    setShowOnlyPredicted(false);
+    if (!countryId) return;
+
+    setLoading(prev => ({ ...prev, leagues: true }));
+    const result = await getLeaguesByCountry(countryId);
+    if (result && result.error) {
+      setError(result.error);
+    } else if (result && result.data) {
+      setLeagues(result.data as League[]);
+    }
+    setLoading(prev => ({ ...prev, leagues: false }));
+  }, []);
+
+  const handleLeagueChange = useCallback(async (leagueIdSeason: string) => {
+    setSelectedLeague(leagueIdSeason);
+    setSelectedRound(null);
+    setRounds([]);
+    setMatches([]);
+    setError(null);
+    setShowOnlyPredicted(false);
+    if (!leagueIdSeason) return;
+    
+    const leagueData = leagues.find(l => l.id === leagueIdSeason);
+    if (!leagueData) return;
+    
+    setLoading(prev => ({ ...prev, rounds: true }));
+    const result = await getRoundsForLeague(leagueData.league_id, leagueData.season);
+    if (result && result.error) {
+      setError(result.error);
+    } else if (result && result.data) {
+      setRounds(result.data as string[]);
+    }
+    setLoading(prev => ({ ...prev, rounds: false }));
+  }, [leagues]);
+
+  const handleRoundChange = useCallback(async (round: string) => {
+    setSelectedRound(round);
+    setMatches([]);
+    setError(null);
+    setShowOnlyPredicted(false);
+    if (!round || !selectedLeague) return;
+
+    const leagueData = leagues.find(l => l.id === selectedLeague);
+    if (!leagueData) return;
+    
+    setLoading(prev => ({ ...prev, matches: true }));
+    const { data: matches, error } = await getMatchesByRound(leagueData.league_id, leagueData.season, round);
+    setLoading(prev => ({ ...prev, matches: false }));
+    if (error) {
+      setError(error);
+      setMatches([]);
+      return;
+    }
+
+    if (matches && matches.length > 0) {
+      const { data: enrichedMatches, error: enrichError } = await getMatchesByDate(matches[0].match_date, matches[matches.length - 1].match_date);
+      if (enrichError) {
+        setError(enrichError);
+        setMatches([]);
+      } else {
+        const roundMatchIds = new Set(matches.map(m => m.id));
+        const finalMatches = enrichedMatches?.filter(m => roundMatchIds.has(m.id)) || [];
+        setMatches(finalMatches);
+      }
+    } else {
+        setMatches([]);
+    }
+
+  }, [selectedLeague, leagues]);
+
+  const hasAnyPrediction = useMemo(() => {
+    return !loading.matches && matches.some(match => match.prediction?.has_prediction);
+  }, [matches, loading.matches]);
+
+  const filteredMatches = useMemo(() => {
+    if (showOnlyPredicted) {
+      return matches.filter(match => match.prediction?.has_prediction);
+    }
+    return matches;
+  }, [matches, showOnlyPredicted]);
+
   return (
-    <div className="space-y-6 pt-2">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="country-select">País</Label>
-          <Select>
-            <SelectTrigger id="country-select">
-              <SelectValue placeholder="Seleccionar país" />
-            </SelectTrigger>
-            <SelectContent>
-              {/* Country options would be populated here */}
-            </SelectContent>
-          </Select>
+    <Card>
+      <CardHeader>
+        <CardTitle>Búsqueda por Jornada</CardTitle>
+        <CardDescription>Selecciona un país, liga y jornada para ver los encuentros.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid md:grid-cols-3 gap-6 mb-6">
+          <div className="grid gap-2">
+            <Label htmlFor="country">País</Label>
+            <Select onValueChange={handleCountryChange} value={selectedCountry ?? ''} disabled={loading.countries}>
+              <SelectTrigger id="country" aria-label="Seleccionar país">
+                <SelectValue placeholder={loading.countries ? "Cargando..." : "Seleccionar país"} />
+              </SelectTrigger>
+              <SelectContent>
+                {countries.map((country) => (
+                  <SelectItem key={country.id} value={country.id.toString()}>{country.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="league">Liga por año</Label>
+            <Select onValueChange={handleLeagueChange} value={selectedLeague ?? ''} disabled={!selectedCountry || loading.leagues}>
+              <SelectTrigger id="league" aria-label="Seleccionar liga">
+                <SelectValue placeholder={loading.leagues ? "Cargando..." : (leagues.length > 0 ? "Seleccionar liga" : "No hay ligas")} />
+              </SelectTrigger>
+              <SelectContent>
+                {leagues.map((league) => (
+                  <SelectItem key={league.id} value={league.id}>{league.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="round">Jornada</Label>
+            <Select onValueChange={handleRoundChange} value={selectedRound ?? ''} disabled={!selectedLeague || loading.rounds}>
+              <SelectTrigger id="round" aria-label="Seleccionar jornada">
+                <SelectValue placeholder={loading.rounds ? "Cargando..." : (rounds.length > 0 ? "Seleccionar jornada" : "No hay jornadas")} />
+              </SelectTrigger>
+              <SelectContent>
+                {rounds.map((round) => (
+                  <SelectItem key={round} value={round}>{round}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="league-select">Liga</Label>
-          <Select disabled>
-            <SelectTrigger id="league-select">
-              <SelectValue placeholder="Seleccionar liga" />
-            </SelectTrigger>
-            <SelectContent>
-              {/* League options would be populated here */}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="matchday-select">Jornada</Label>
-          <Select disabled>
-            <SelectTrigger id="matchday-select">
-              <SelectValue placeholder="Seleccionar jornada" />
-            </SelectTrigger>
-            <SelectContent>
-              {/* Matchday options would be populated here */}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <MatchList />
-    </div>
+        
+        {hasAnyPrediction && (
+            <Alert variant="destructive" className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="relative flex h-3 w-3">
+                    <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
+                    <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
+                </div>
+                <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con pronóstico disponibles!</AlertTitle>
+              </div>
+              <Button onClick={() => setShowOnlyPredicted(!showOnlyPredicted)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                {showOnlyPredicted ? 'Mostrar todos' : 'Mostrar solo con pronóstico'}
+              </Button>
+            </Alert>
+        )}
+
+        {loading.matches ? (
+            <div className="space-y-4 mt-6">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full rounded-lg" />
+              ))}
+            </div>
+        ) : selectedRound ? (
+          <MatchList matches={filteredMatches} error={error} loading={loading.matches} />
+        ) : (
+          <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">
+            <p>Selecciona los filtros para buscar encuentros.</p>
+          </div>
+        )}
+
+      </CardContent>
+    </Card>
   );
 }
