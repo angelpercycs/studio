@@ -21,7 +21,7 @@ export default function Home() {
           </h1>
         </header>
 
-        <div className="mb-8 flex w-full justify-center">
+        <div className="mb-6 flex w-full justify-center">
           <div className="w-3/4">
             <AdBanner />
           </div>
