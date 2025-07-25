@@ -8,7 +8,6 @@ import { MatchList } from "@/components/match-list";
 import { startOfDay, endOfDay, subDays, addDays } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Progress } from "./ui/progress";
 
 export function DailyMatches() {
   const [matches, setMatches] = useState<any[]>([]);
@@ -74,7 +73,7 @@ export function DailyMatches() {
           <TabsContent value={activeTab} key={activeTab} className="mt-4">
             {hasAnyFavorite && (
               <Alert variant="destructive" className="mb-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="relative flex h-3 w-3">
                         <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
@@ -85,10 +84,6 @@ export function DailyMatches() {
                    <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
                     {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
                   </Button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Progress value={50} className="w-1/2 h-2" />
-                  <AlertDescription className="text-destructive-foreground/80 text-xs font-semibold">50% de acierto</AlertDescription>
                 </div>
               </Alert>
             )}

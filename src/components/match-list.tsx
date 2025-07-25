@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Flag, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 const MatchDaySkeleton = () => (
   <div className="space-y-4 mt-6">
@@ -16,7 +17,7 @@ const MatchDaySkeleton = () => (
   </div>
 );
 
-const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { title: string, homeStats: any, awayStats: any, homeName: string, awayName: string }) => {
+const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName, favoriteTeam }: { title: string, homeStats: any, awayStats: any, homeName: string, awayName: string, favoriteTeam?: 'team1' | 'team2' | null }) => {
     if (!homeStats || !awayStats) {
         return (
             <div className="my-4 text-center text-muted-foreground">
@@ -41,7 +42,7 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
+              <TableRow className={cn(favoriteTeam === 'team1' && "bg-accent/20 hover:bg-accent/30")}>
                 <TableCell>{homeName}</TableCell>
                 <TableCell>{homeStats.played}</TableCell>
                 <TableCell>{homeStats.won}</TableCell>
@@ -51,7 +52,7 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
                 <TableCell>{homeStats.goalsAgainst}</TableCell>
                 <TableCell className="font-bold">{homeStats.points}</TableCell>
               </TableRow>
-              <TableRow>
+              <TableRow className={cn(favoriteTeam === 'team2' && "bg-accent/20 hover:bg-accent/30")}>
                 <TableCell>{awayName}</TableCell>
                 <TableCell>{awayStats.played}</TableCell>
                 <TableCell>{awayStats.won}</TableCell>
@@ -127,6 +128,7 @@ const MatchRow = ({ match }: { match: any }) => {
                 awayStats={match.team2_standings}
                 homeName={match.team1?.name}
                 awayName={match.team2?.name}
+                favoriteTeam={match.favorite}
               />
               <StandingsTable 
                 title="Clasificación Local/Visitante"
@@ -134,6 +136,7 @@ const MatchRow = ({ match }: { match: any }) => {
                 awayStats={match.team2_standings?.away}
                 homeName={match.team1?.name}
                 awayName={match.team2?.name}
+                favoriteTeam={match.favorite}
               />
             </>
           )}
@@ -144,6 +147,7 @@ const MatchRow = ({ match }: { match: any }) => {
               awayStats={match.team2_last_3}
               homeName={match.team1?.name}
               awayName={match.team2?.name}
+              favoriteTeam={match.favorite}
             />
           )}
           {match.team1_last_3_home_away && match.team2_last_3_home_away && (
@@ -153,6 +157,7 @@ const MatchRow = ({ match }: { match: any }) => {
               awayStats={match.team2_last_3_home_away}
               homeName={match.team1?.name}
               awayName={match.team2?.name}
+              favoriteTeam={match.favorite}
             />
           )}
         </div>
