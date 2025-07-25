@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Match Tracker',
+  title: 'Fútbol Stats Zone',
   description: 'Track football matches by day, date, or league.',
   icons: {
     icon: '/icon.svg',
