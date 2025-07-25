@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Flag, AlertCircle, Lightbulb } from "lucide-react";
+import { Flag, AlertCircle, Lightbulb, Star } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
@@ -112,11 +112,18 @@ const MatchRow = ({ match }: { match: any }) => {
   const winnerIsTeam1 = hasPrediction && match.prediction.winner_name === match.team1.name;
   const winnerIsTeam2 = hasPrediction && match.prediction.winner_name === match.team2.name;
 
+  const isFavoriteTeam1 = match.favorite === 'team1';
+  const isFavoriteTeam2 = match.favorite === 'team2';
+
   const BlinkingLight = () => (
     <div className="relative flex h-3 w-3 mx-2">
       <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
       <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
     </div>
+  );
+  
+  const FavoriteStar = () => (
+    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 ml-2" />
   );
 
   return (
@@ -129,6 +136,7 @@ const MatchRow = ({ match }: { match: any }) => {
                     <div className="flex-grow text-left flex items-center">
                         <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
                         {winnerIsTeam1 && <BlinkingLight />}
+                        {isFavoriteTeam1 && <FavoriteStar />}
                     </div>
                     <span className="font-bold w-6 text-center">{match.team1_score ?? '-'}</span>
                 </div>
@@ -136,6 +144,7 @@ const MatchRow = ({ match }: { match: any }) => {
                     <div className="flex-grow text-left flex items-center">
                         <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
                         {winnerIsTeam2 && <BlinkingLight />}
+                        {isFavoriteTeam2 && <FavoriteStar />}
                     </div>
                     <span className="font-bold w-6 text-center">{match.team2_score ?? '-'}</span>
                 </div>

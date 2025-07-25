@@ -177,6 +177,31 @@ async function getLastNMatchesStandings(teamId: number, season: number, league_i
     return { all: allStats, homeAway: homeAwayStats };
 }
 
+function checkIsFavorite(standings: any, last3: any, last3HomeAway: any, homeAwayStandings: any): boolean {
+    if (!standings || !last3 || !last3HomeAway || !homeAwayStandings) return false;
+    if (standings.played === 0 || homeAwayStandings.played === 0) return false;
+
+    // Rule 1: Minimum matches played
+    if (standings.played < 9) return false;
+
+    // Rule 2: Good recent defense (general)
+    if (last3.goalsAgainst >= 3) return false;
+
+    // Rule 3: Good recent attack (general)
+    if (last3.goalsFor <= 2) return false;
+
+    // Rule 4: Good recent form (home/away)
+    if (last3HomeAway.goalsAgainst >= 3) return false;
+    if (last3HomeAway.goalsFor <= 2) return false;
+
+    // Rule 5: Solid win percentage
+    if ((standings.won / standings.played) * 100 <= 45) return false;
+
+    // Rule 6: Few losses (home/away)
+    if ((homeAwayStandings.lost / homeAwayStandings.played) * 100 >= 35) return false;
+    
+    return true;
+}
 
 export async function getCountries() {
     try {
@@ -300,7 +325,7 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
 
         const statsPromises = matchesWithLeagues.map(async match => {
             if (!match.team1_id || !match.team2_id || !match.season || !match.league_id) {
-                return { ...match, prediction: { has_prediction: false } };
+                return { ...match, prediction: { has_prediction: false }, favorite: null };
             }
             try {
                 const [team1Standings, team2Standings, team1Last3Data, team2Last3Data] = await Promise.all([
@@ -337,6 +362,13 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
                         console.error('Error getting match prediction', e);
                     }
                 }
+                
+                const isTeam1Favorite = checkIsFavorite(team1Standings, team1Last3Data?.all, team1Last3Data?.homeAway, team1Standings?.home);
+                const isTeam2Favorite = checkIsFavorite(team2Standings, team2Last3Data?.all, team2Last3Data?.homeAway, team2Standings?.away);
+
+                let favorite = null;
+                if (isTeam1Favorite && !isTeam2Favorite) favorite = 'team1';
+                else if (!isTeam1Favorite && isTeam2Favorite) favorite = 'team2';
 
                 return {
                     ...match,
@@ -346,11 +378,12 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
                     team2_last_3: team2Last3Data?.all,
                     team1_last_3_home_away: team1Last3Data?.homeAway,
                     team2_last_3_home_away: team2Last3Data?.homeAway,
-                    prediction
+                    prediction,
+                    favorite
                 };
             } catch (error) {
                 console.error('Error processing stats for match', match.id, error);
-                return { ...match, prediction: { has_prediction: false } };
+                return { ...match, prediction: { has_prediction: false }, favorite: null };
             }
         });
 
