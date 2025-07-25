@@ -217,72 +217,65 @@ export async function getMatchesByDate(startDate: string, endDate: string) {
         }));
 
 
-        const statsPromises = matchesWithLeagues.map(match => {
+        const statsPromises = matchesWithLeagues.map(async (match) => {
             if (!match.team1_id || !match.team2_id || !match.season || !match.league_id) {
-                return Promise.resolve({ ...match, prediction: { has_prediction: false } });
+                return { ...match, prediction: { has_prediction: false } };
             }
 
-            return Promise.all([
-                getTeamStandings(match.team1_id, match.season, match.league_id, match.match_date),
-                getTeamStandings(match.team2_id, match.season, match.league_id, match.match_date),
-                getLastNMatchesStandings(match.team1_id, match.season, match.league_id, true, match.match_date),
-                getLastNMatchesStandings(match.team2_id, match.season, match.league_id, false, match.match_date)
-            ]).then(([team1Standings, team2Standings, team1Last3Data, team2Last3Data]) => {
-                return { 
-                    match, 
-                    team1Standings, 
-                    team2Standings, 
-                    team1Last3Data, 
-                    team2Last3Data 
+            try {
+                const [team1Standings, team2Standings, team1Last3Data, team2Last3Data] = await Promise.all([
+                    getTeamStandings(match.team1_id, match.season, match.league_id, match.match_date),
+                    getTeamStandings(match.team2_id, match.season, match.league_id, match.match_date),
+                    getLastNMatchesStandings(match.team1_id, match.season, match.league_id, true, match.match_date),
+                    getLastNMatchesStandings(match.team2_id, match.season, match.league_id, false, match.match_date)
+                ]);
+
+                let prediction: MatchPredictionOutput = { has_prediction: false };
+                const allDataAvailable = 
+                    match.team1 && 
+                    match.team2 && 
+                    team1Standings && 
+                    team2Standings && 
+                    team1Last3Data?.all && 
+                    team2Last3Data?.all && 
+                    team1Last3Data?.homeAway && 
+                    team2Last3Data?.homeAway;
+
+                if (allDataAvailable) {
+                    try {
+                        prediction = await getMatchPrediction({
+                            team1Name: match.team1.name,
+                            team2Name: match.team2.name,
+                            team1_standings: team1Standings,
+                            team2_standings: team2Standings,
+                            team1_last_3: team1Last3Data.all,
+                            team2_last_3: team2Last3Data.all,
+                            team1_last_3_home_away: team1Last3Data.homeAway,
+                            team2_last_3_home_away: team2Last3Data.homeAway,
+                        });
+                    } catch(e) {
+                        console.error('Error getting match prediction', e);
+                        // Keep prediction as has_prediction: false
+                    }
+                }
+
+                return {
+                    ...match,
+                    team1_standings: team1Standings,
+                    team2_standings: team2Standings,
+                    team1_last_3: team1Last3Data?.all,
+                    team2_last_3: team2Last3Data?.all,
+                    team1_last_3_home_away: team1Last3Data?.homeAway,
+                    team2_last_3_home_away: team2Last3Data?.homeAway,
+                    prediction
                 };
-            });
+            } catch (error) {
+                console.error('Error processing stats for match', match.id, error);
+                return { ...match, prediction: { has_prediction: false } };
+            }
         });
 
-        const allStats = await Promise.all(statsPromises);
-        
-        const enrichedMatches = [];
-        for (const { match, team1Standings, team2Standings, team1Last3Data, team2Last3Data } of allStats) {
-             let prediction: MatchPredictionOutput = { has_prediction: false };
-
-            const allDataAvailable = 
-                match.team1 && 
-                match.team2 && 
-                team1Standings && 
-                team2Standings && 
-                team1Last3Data?.all && 
-                team2Last3Data?.all && 
-                team1Last3Data?.homeAway && 
-                team2Last3Data?.homeAway;
-
-            if (allDataAvailable) {
-                try {
-                    prediction = await getMatchPrediction({
-                        team1Name: match.team1.name,
-                        team2Name: match.team2.name,
-                        team1_standings: team1Standings,
-                        team2_standings: team2Standings,
-                        team1_last_3: team1Last3Data.all,
-                        team2_last_3: team2Last3Data.all,
-                        team1_last_3_home_away: team1Last3Data.homeAway,
-                        team2_last_3_home_away: team2Last3Data.homeAway,
-                    });
-                } catch(e) {
-                    console.error('Error getting match prediction', e);
-                    // Keep prediction as has_prediction: false
-                }
-            }
-
-            enrichedMatches.push({
-                ...match,
-                team1_standings: team1Standings,
-                team2_standings: team2Standings,
-                team1_last_3: team1Last3Data?.all,
-                team2_last_3: team2Last3Data?.all,
-                team1_last_3_home_away: team1Last3Data?.homeAway,
-                team2_last_3_home_away: team2Last3Data?.homeAway,
-                prediction
-            });
-        }
+        const enrichedMatches = await Promise.all(statsPromises);
         
         return { data: enrichedMatches, error: null };
     } catch (e: any) {
