@@ -15,6 +15,7 @@ async function getLeagues() {
             id,
             name,
             country_id,
+            season,
             countries (
                 id,
                 name
@@ -36,7 +37,7 @@ async function getLeagues() {
     return leagueMap;
 }
 
-async function getTeamStandings(teamId: number, season: number, league_id: number, matchDate: string) {
+async function getTeamStandings(teamId: string, season: string, league_id: string, matchDate: string) {
     if (!teamId || !season || !league_id) return null;
     const { data: allMatches, error: matchesError } = await supabase
         .from('matches')
@@ -95,7 +96,7 @@ async function getTeamStandings(teamId: number, season: number, league_id: numbe
     return stats;
 }
 
-async function getLastNMatchesStandings(teamId: number, season: number, league_id: number, isHome: boolean, matchDate: string, limit = 3) {
+async function getLastNMatchesStandings(teamId: string, season: string, league_id: string, isHome: boolean, matchDate: string, limit = 3) {
     const defaultStats = { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 };
      if (!teamId || !season || !league_id) return { all: defaultStats, homeAway: defaultStats };
     
@@ -213,7 +214,7 @@ export async function getLeaguesByCountry(countryId: string) {
 
         const { data, error } = await supabase
             .from('leagues')
-            .select('id, name, season, league_id')
+            .select('id, name, season')
             .eq('country_id', countryId)
             .order('name', { ascending: true });
         
@@ -224,9 +225,9 @@ export async function getLeaguesByCountry(countryId: string) {
 
         const leaguesWithSeasons = data.map(league => {
             return {
-                id: `${league.league_id}-${league.season}`,
+                id: `${league.id}-${league.season}`, // Unique ID for frontend select
                 name: `${league.name} (${league.season})`,
-                league_id: league.league_id,
+                league_id: league.id, // The actual league_id (e.g., 'DZ_LIG1')
                 season: league.season
             };
         });
@@ -284,8 +285,8 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
                 team1_score,
                 team2_score,
                 matchday,
-                team1:teams!matches_team1_id_fkey(id, name),
-                team2:teams!matches_team2_id_fkey(id, name)
+                team1:teams(id, name),
+                team2:teams(id, name)
             `)
             .eq('league_id', leagueId)
             .eq('season', season)
@@ -352,5 +353,3 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
     }
 }
-
-    

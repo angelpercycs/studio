@@ -16,9 +16,9 @@ interface Country {
 }
 
 interface League {
-  id: string;
+  id: string; // This will be composite `league_id-season`
   name: string;
-  league_id: string;
+  league_id: string; // The actual league_id from DB
   season: string;
 }
 

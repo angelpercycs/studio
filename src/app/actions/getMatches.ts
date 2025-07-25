@@ -15,6 +15,7 @@ async function getLeagues() {
             id,
             name,
             country_id,
+            season,
             countries (
                 id,
                 name
@@ -36,7 +37,7 @@ async function getLeagues() {
     return leagueMap;
 }
 
-async function getTeamStandings(teamId: number, season: number, league_id: number, matchDate: string) {
+async function getTeamStandings(teamId: string, season: string, league_id: string, matchDate: string) {
     if (!teamId || !season || !league_id) return null;
     const { data: allMatches, error: matchesError } = await supabase
         .from('matches')
@@ -95,7 +96,7 @@ async function getTeamStandings(teamId: number, season: number, league_id: numbe
     return stats;
 }
 
-async function getLastNMatchesStandings(teamId: number, season: number, league_id: number, isHome: boolean, matchDate: string, limit = 3) {
+async function getLastNMatchesStandings(teamId: string, season: string, league_id: string, isHome: boolean, matchDate: string, limit = 3) {
     const defaultStats = { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 };
      if (!teamId || !season || !league_id) return { all: defaultStats, homeAway: defaultStats };
     
@@ -205,8 +206,8 @@ export async function getMatchesByDate(startDate: string, endDate: string) {
                 team1_score,
                 team2_score,
                 matchday,
-                team1:teams!matches_team1_id_fkey(id, name),
-                team2:teams!matches_team2_id_fkey(id, name)
+                team1:teams(id, name),
+                team2:teams(id, name)
             `)
             .gte('match_date', startDate)
             .lte('match_date', endDate)
