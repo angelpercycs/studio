@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://futbol-stats-zone.vercel.app'; // Reemplaza con tu dominio de producción
+  const baseUrl = 'https://www.fszscore.com'; 
 
   return [
     {
