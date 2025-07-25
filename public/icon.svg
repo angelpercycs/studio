@@ -1,41 +1,9 @@
-<svg
-  width="48"
-  height="48"
-  viewBox="0 0 24 24"
-  fill="white"
-  xmlns="http://www.w3.org/2000/svg"
->
-  <text
-    x="50%"
-    y="50%"
-    dominant-baseline="middle"
-    text-anchor="middle"
-    font-family="Arial, sans-serif"
-    font-size="24"
-    font-weight="bold"
-  >
-    S
-  </text>
-  <text
-    x="8"
-    y="8.5"
-    dominant-baseline="middle"
-    text-anchor="middle"
-    font-family="Arial, sans-serif"
-    font-size="7"
-    font-weight="bold"
-  >
-    F
-  </text>
-  <text
-    x="16"
-    y="16.5"
-    dominant-baseline="middle"
-    text-anchor="middle"
-    font-family="Arial, sans-serif"
-    font-size="7"
-    font-weight="bold"
-  >
-    Z
-  </text>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<style>
+    .s-letter { font: bold 40px sans-serif; fill: white; }
+    .side-letter { font: bold 20px sans-serif; fill: white; }
+</style>
+<text x="24" y="30" text-anchor="middle" class="s-letter">S</text>
+<text x="6" y="30" text-anchor="middle" class="side-letter">F</text>
+<text x="42" y="30" text-anchor="middle" class="side-letter">Z</text>
 </svg>
