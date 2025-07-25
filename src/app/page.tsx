@@ -13,7 +13,7 @@ export default function Home() {
           </h1>
         </header>
         <Tabs defaultValue="daily" className="w-full">
-          <TabsList className="mb-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="daily">Encuentros del día</TabsTrigger>
             <TabsTrigger value="by-date">Por fecha</TabsTrigger>
             <TabsTrigger value="by-league">Por liga</TabsTrigger>

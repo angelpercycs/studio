@@ -6,7 +6,7 @@ import { MatchList } from "@/components/match-list";
 export function DailyMatches() {
   return (
     <Tabs defaultValue="today" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="yesterday">Ayer</TabsTrigger>
         <TabsTrigger value="today">Hoy</TabsTrigger>
         <TabsTrigger value="tomorrow">Mañana</TabsTrigger>
