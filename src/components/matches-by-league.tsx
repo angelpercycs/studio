@@ -121,13 +121,13 @@ export function MatchesByLeague() {
     }
 
     if (matchesByRound && matchesByRound.length > 0) {
+      const matchIds = matchesByRound.map(m => m.id);
       const { data: enrichedMatches, error: enrichError } = await getMatchesByDate(matchesByRound[0].match_date_iso, matchesByRound[matchesByRound.length - 1].match_date_iso);
       if (enrichError) {
         setError(enrichError);
         setMatches([]);
       } else {
-        const roundMatchIds = new Set(matchesByRound.map(m => m.id));
-        const finalMatches = enrichedMatches?.filter(m => roundMatchIds.has(m.id)) || [];
+        const finalMatches = enrichedMatches?.filter(m => matchIds.includes(m.id)) || [];
         setMatches(finalMatches);
       }
     } else {
