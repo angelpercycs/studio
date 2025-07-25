@@ -112,7 +112,7 @@ const MatchRow = ({ match }: { match: any }) => {
           </div>
       </SheetTrigger>
       <SheetContent className="w-full max-w-[90vw] sm:max-w-xl overflow-y-auto">
-        <SheetHeader className="text-center pb-4 border-b">
+        <SheetHeader className="text-left pb-4 border-b">
           <SheetTitle>{match.team1?.name} vs {match.team2?.name}</SheetTitle>
           <SheetDescription>
               {match.league?.name}
@@ -122,7 +122,7 @@ const MatchRow = ({ match }: { match: any }) => {
               <span className="text-xs">Resultados de liga, dentro de los 90 minutos reglamentarios.</span>
           </SheetDescription>
            {isFavorite && (
-              <div className="mt-4 space-y-2 text-center">
+              <div className="mt-4 space-y-2 text-left">
                   <p className="text-sm font-bold text-primary">
                     Favorito a ganar: {favoriteTeamName}
                   </p>
