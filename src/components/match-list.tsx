@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Flag, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { Progress } from "./ui/progress";
+
 
 const MatchDaySkeleton = () => (
   <div className="space-y-4 mt-6">
@@ -17,7 +18,7 @@ const MatchDaySkeleton = () => (
   </div>
 );
 
-const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName, favoriteTeam }: { title: string, homeStats: any, awayStats: any, homeName: string, awayName: string, favoriteTeam?: 'team1' | 'team2' | null }) => {
+const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { title: string, homeStats: any, awayStats: any, homeName: string, awayName: string }) => {
     if (!homeStats || !awayStats) {
         return (
             <div className="my-4 text-center text-muted-foreground">
@@ -42,7 +43,7 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName, favor
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow className={cn(favoriteTeam === 'team1' && "bg-accent/20 hover:bg-accent/30")}>
+              <TableRow>
                 <TableCell>{homeName}</TableCell>
                 <TableCell>{homeStats.played}</TableCell>
                 <TableCell>{homeStats.won}</TableCell>
@@ -52,7 +53,7 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName, favor
                 <TableCell>{homeStats.goalsAgainst}</TableCell>
                 <TableCell className="font-bold">{homeStats.points}</TableCell>
               </TableRow>
-              <TableRow className={cn(favoriteTeam === 'team2' && "bg-accent/20 hover:bg-accent/30")}>
+              <TableRow>
                 <TableCell>{awayName}</TableCell>
                 <TableCell>{awayStats.played}</TableCell>
                 <TableCell>{awayStats.won}</TableCell>
@@ -77,6 +78,7 @@ const MatchRow = ({ match }: { match: any }) => {
 
   const isFavoriteTeam1 = match.favorite === 'team1';
   const isFavoriteTeam2 = match.favorite === 'team2';
+  const isFavorite = isFavoriteTeam1 || isFavoriteTeam2;
 
   const BlinkingLight = () => (
     <div className="relative flex h-3 w-3 mx-2">
@@ -109,7 +111,7 @@ const MatchRow = ({ match }: { match: any }) => {
           </div>
       </SheetTrigger>
       <SheetContent className="w-full max-w-[90vw] sm:max-w-xl overflow-y-auto">
-        <SheetHeader className="text-center">
+        <SheetHeader className="text-center pb-4 border-b">
           <SheetTitle>{match.team1?.name} vs {match.team2?.name}</SheetTitle>
           <SheetDescription>
               {match.league?.name}
@@ -118,6 +120,12 @@ const MatchRow = ({ match }: { match: any }) => {
               <br />
               <span className="text-xs">Resultados de liga, dentro de los 90 minutos reglamentarios.</span>
           </SheetDescription>
+           {isFavorite && (
+              <div className="mt-2 space-y-1">
+                  <Progress value={50} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
+                  <p className="text-xs font-semibold text-primary">Predicción con 50% de acierto</p>
+              </div>
+            )}
         </SheetHeader>
         <div className="p-4">
           {match.team1_standings && match.team2_standings && (
@@ -128,7 +136,6 @@ const MatchRow = ({ match }: { match: any }) => {
                 awayStats={match.team2_standings}
                 homeName={match.team1?.name}
                 awayName={match.team2?.name}
-                favoriteTeam={match.favorite}
               />
               <StandingsTable 
                 title="Clasificación Local/Visitante"
@@ -136,7 +143,6 @@ const MatchRow = ({ match }: { match: any }) => {
                 awayStats={match.team2_standings?.away}
                 homeName={match.team1?.name}
                 awayName={match.team2?.name}
-                favoriteTeam={match.favorite}
               />
             </>
           )}
@@ -147,7 +153,6 @@ const MatchRow = ({ match }: { match: any }) => {
               awayStats={match.team2_last_3}
               homeName={match.team1?.name}
               awayName={match.team2?.name}
-              favoriteTeam={match.favorite}
             />
           )}
           {match.team1_last_3_home_away && match.team2_last_3_home_away && (
@@ -157,7 +162,6 @@ const MatchRow = ({ match }: { match: any }) => {
               awayStats={match.team2_last_3_home_away}
               homeName={match.team1?.name}
               awayName={match.team2?.name}
-              favoriteTeam={match.favorite}
             />
           )}
         </div>
