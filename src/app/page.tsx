@@ -1,3 +1,4 @@
+import { AdBanner } from '@/components/ad-banner';
 import { DailyMatches } from '@/components/daily-matches';
 import { MatchesByDate } from '@/components/matches-by-date';
 import { MatchesByLeague } from '@/components/matches-by-league';
@@ -22,16 +23,7 @@ export default function Home() {
 
         <div className="mb-8 flex w-full justify-center">
           <div className="w-3/4">
-            <a href="#" target="_blank" rel="noopener noreferrer">
-              <Image
-                src="https://placehold.co/970x90.png"
-                alt="Banner Ad"
-                width={970}
-                height={90}
-                className="w-full h-auto rounded-lg"
-                data-ai-hint="advertisement banner"
-              />
-            </a>
+            <AdBanner />
           </div>
         </div>
         
