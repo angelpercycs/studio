@@ -48,3 +48,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .baby-blue-icon {
+    filter: brightness(0) saturate(100%) invert(83%) sepia(23%) saturate(1450%) hue-rotate(159deg) brightness(101%) contrast(92%);
+  }
+}
