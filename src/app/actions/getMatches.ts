@@ -177,9 +177,9 @@ async function getLastNMatchesStandings(teamId: string, season: string, league_i
     return { all: allStats, homeAway: homeAwayStats };
 }
 
-function checkIsFavorite(standings: any, last3: any, last3HomeAway: any, homeAwayStandings: any): boolean {
-    if (!standings || !last3 || !last3HomeAway || !homeAwayStandings) return false;
-    if (standings.played === 0 || homeAwayStandings.played === 0) return false;
+function checkIsFavorite(standings: any, last3: any, last3HomeAway: any, homeAwayStandings: any, opponentStandings: any): boolean {
+    if (!standings || !last3 || !last3HomeAway || !homeAwayStandings || !opponentStandings) return false;
+    if (standings.played === 0 || homeAwayStandings.played === 0 || opponentStandings.played === 0) return false;
     if (standings.played < 9) return false;
     if (last3.goalsAgainst >= 3) return false;
     if (last3.goalsFor <= 2) return false;
@@ -187,7 +187,8 @@ function checkIsFavorite(standings: any, last3: any, last3HomeAway: any, homeAwa
     if (last3HomeAway.goalsFor <= 2) return false;
     if ((standings.won / standings.played) * 100 <= 45) return false;
     if ((homeAwayStandings.lost / homeAwayStandings.played) * 100 >= 35) return false;
-    
+    if ((opponentStandings.won / opponentStandings.played) * 100 >= 50) return false;
+
     return true;
 }
 
@@ -248,8 +249,8 @@ export async function getMatchesByDate(dateString: string) {
                     getLastNMatchesStandings(match.team2_id, match.season, match.league_id, false, match.match_date)
                 ]);
 
-                const isTeam1Favorite = checkIsFavorite(team1Standings, team1Last3Data?.all, team1Last3Data?.homeAway, team1Standings?.home);
-                const isTeam2Favorite = checkIsFavorite(team2Standings, team2Last3Data?.all, team2Last3Data?.homeAway, team2Standings?.away);
+                const isTeam1Favorite = checkIsFavorite(team1Standings, team1Last3Data?.all, team1Last3Data?.homeAway, team1Standings?.home, team2Standings);
+                const isTeam2Favorite = checkIsFavorite(team2Standings, team2Last3Data?.all, team2Last3Data?.homeAway, team2Standings?.away, team1Standings);
 
                 let favorite = null;
                 if (isTeam1Favorite && !isTeam2Favorite) favorite = 'team1';
