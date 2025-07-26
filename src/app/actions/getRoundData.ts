@@ -354,5 +354,3 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
     }
 }
-
-    

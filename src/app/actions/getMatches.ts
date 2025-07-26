@@ -195,7 +195,7 @@ function checkIsFavorite(standings: any, last3: any, last3HomeAway: any, homeAwa
 
 export async function getMatchesByDate(dateString: string) {
     try {
-        const targetDate = parseISO(dateString + 'T00:00:00Z');
+        const targetDate = parseISO(dateString);
         const startDate = startOfDay(targetDate).toISOString();
         const endDate = endOfDay(targetDate).toISOString();
 
@@ -281,5 +281,3 @@ export async function getMatchesByDate(dateString: string) {
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
     }
 }
-
-    
