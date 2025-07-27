@@ -209,14 +209,36 @@ export async function getCountries() {
     }
 }
 
-export async function getLeaguesByCountry(countryId: string) {
+export async function getSeasonsByCountry(countryId: string) {
     try {
         if (!countryId) return { data: [], error: null };
+        const { data, error } = await supabase
+            .from('leagues')
+            .select('season')
+            .eq('country_id', countryId)
+            .order('season', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching seasons:', error);
+            return { data: null, error: `Error de Supabase: ${error.message}` };
+        }
+        const uniqueSeasons = [...new Set(data.map(l => l.season))];
+        return { data: uniqueSeasons, error: null };
+    } catch (e: any) {
+        console.error('Unexpected error in getSeasonsByCountry:', e);
+        return { data: null, error: `An unexpected error occurred: ${e.message}` };
+    }
+}
+
+export async function getLeaguesByCountryAndSeason(countryId: string, season: string) {
+    try {
+        if (!countryId || !season) return { data: [], error: null };
 
         const { data, error } = await supabase
             .from('leagues')
-            .select('id, name, season')
+            .select('id, name')
             .eq('country_id', countryId)
+            .eq('season', season)
             .order('name', { ascending: true });
         
         if (error) {
@@ -224,16 +246,7 @@ export async function getLeaguesByCountry(countryId: string) {
             return { data: null, error: `Error de Supabase: ${error.message}` };
         }
 
-        const leaguesWithSeasons = data.map(league => {
-            return {
-                id: `${league.id}-${league.season}`,
-                name: `${league.name} (${league.season})`,
-                league_id: league.id,
-                season: league.season
-            };
-        });
-
-        return { data: leaguesWithSeasons, error: null };
+        return { data, error: null };
     } catch (e: any) {
         console.error('Unexpected error in getLeaguesByCountry:', e);
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
