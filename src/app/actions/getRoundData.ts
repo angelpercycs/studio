@@ -18,7 +18,8 @@ async function getLeagues() {
             season,
             countries (
                 id,
-                name
+                name,
+                flag
             )
         `);
 
@@ -320,7 +321,7 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
         
         const matchesWithLeagues = matchesData.map(match => ({
             ...match,
-            league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown' } }
+            league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } }
         }));
 
 

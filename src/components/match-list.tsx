@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Flag, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Progress } from "./ui/progress";
@@ -210,12 +210,13 @@ export const MatchList = ({ matches, error, loading }: { matches: any[], error: 
     if (!acc[leagueName]) {
       acc[leagueName] = {
         matches: [],
-        country: match.league?.countries?.name || 'Unknown Country'
+        country: match.league?.countries?.name || 'Unknown Country',
+        flag: match.league?.countries?.flag || null
       };
     }
     acc[leagueName].matches.push(match);
     return acc;
-  }, {} as Record<string, { matches: any[], country: string }>);
+  }, {} as Record<string, { matches: any[], country: string, flag: string | null }>);
 
   const sortedLeagues = Object.entries(groupedByLeague).sort(([leagueA, dataA]: [string, any], [leagueB, dataB]: [string, any]) => {
     const countryCompare = dataA.country.localeCompare(dataB.country);
@@ -227,12 +228,13 @@ export const MatchList = ({ matches, error, loading }: { matches: any[], error: 
 
   return (
     <div className="w-full space-y-4 mt-4">
-      {sortedLeagues.map(([leagueName, { matches: leagueMatches, country }]: [string, any]) => {
+      {sortedLeagues.map(([leagueName, { matches: leagueMatches, country, flag }]: [string, any]) => {
         return (
           <Card key={leagueName}>
             <CardContent className="p-0">
               <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
-                <Flag className="h-5 w-5"/> {country} - {leagueName}
+                {flag && <img src={flag} alt={country} className="h-5 w-5" />}
+                {country} - {leagueName}
               </div>
               <div>
                 <div className="divide-y">
