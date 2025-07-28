@@ -174,11 +174,9 @@ export function MatchesByLeague() {
                   <SelectItem key={country.id} value={country.id.toString()}>
                     <div className="flex items-center gap-2">
                       {country.flag && (
-                        <Image 
+                        <img 
                           src={country.flag}
                           alt={country.name}
-                          width={20}
-                          height={20}
                           className="h-5 w-5"
                         />
                       )}
