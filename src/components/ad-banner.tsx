@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 declare global {
     interface Window {
@@ -9,16 +9,28 @@ declare global {
 }
 
 export const AdBanner = () => {
+    const [isMounted, setIsMounted] = useState(false);
+
     useEffect(() => {
-        try {
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (err) {
-            console.error(err);
-        }
+        setIsMounted(true);
     }, []);
 
+    useEffect(() => {
+        if (isMounted) {
+            try {
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }, [isMounted]);
+
+    if (!isMounted) {
+      return <div className="w-full min-h-[50px] rounded-lg bg-muted/30 animate-pulse" />;
+    }
+
     return (
-        <div className="flex justify-center items-center w-full min-h-[50px] bg-muted/30 rounded-lg overflow-hidden">
+        <div key={Math.random()} className="flex justify-center items-center w-full min-h-[50px] bg-muted/30 rounded-lg overflow-hidden">
             <ins 
                 className="adsbygoogle"
                 style={{ display: 'block', width: '100%', height: '50px', textAlign: 'center' }}
