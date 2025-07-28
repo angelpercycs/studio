@@ -3,6 +3,7 @@ import { DailyMatches } from '@/components/daily-matches';
 import { MatchesByDate } from '@/components/matches-by-date';
 import { MatchesByLeague } from '@/components/matches-by-league';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, CalendarDays, Shield } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Home() {
@@ -30,9 +31,18 @@ export default function Home() {
         
         <Tabs defaultValue="daily" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="daily">Encuentros del día</TabsTrigger>
-            <TabsTrigger value="by-date">Por fecha</TabsTrigger>
-            <TabsTrigger value="by-league">Por liga</TabsTrigger>
+            <TabsTrigger value="daily">
+              <CalendarDays className="mr-2 h-4 w-4" />
+              Encuentros del día
+            </TabsTrigger>
+            <TabsTrigger value="by-date">
+              <Calendar className="mr-2 h-4 w-4" />
+              Por fecha
+            </TabsTrigger>
+            <TabsTrigger value="by-league">
+              <Shield className="mr-2 h-4 w-4" />
+              Por liga
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="daily">
             <DailyMatches />
