@@ -195,7 +195,7 @@ export async function getCountries() {
     try {
         const { data, error } = await supabase
             .from('countries')
-            .select('id, name')
+            .select('id, name, flag')
             .order('name', { ascending: true });
 
         if (error) {

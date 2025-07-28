@@ -13,6 +13,7 @@ import { Button } from "./ui/button";
 interface Country {
   id: string;
   name: string;
+  flag: string | null;
 }
 
 interface League {
@@ -169,7 +170,12 @@ export function MatchesByLeague() {
               </SelectTrigger>
               <SelectContent>
                 {countries.map((country) => (
-                  <SelectItem key={country.id} value={country.id.toString()}>{country.name}</SelectItem>
+                  <SelectItem key={country.id} value={country.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      {country.flag && <span className="text-lg">{country.flag}</span>}
+                      <span>{country.name}</span>
+                    </div>
+                    </SelectItem>
                 ))}
               </SelectContent>
             </Select>
