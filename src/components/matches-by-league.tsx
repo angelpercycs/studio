@@ -9,6 +9,7 @@ import { MatchList } from "./match-list";
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "./ui/button";
+import Image from "next/image";
 
 interface Country {
   id: string;
@@ -172,7 +173,15 @@ export function MatchesByLeague() {
                 {countries.map((country) => (
                   <SelectItem key={country.id} value={country.id.toString()}>
                     <div className="flex items-center gap-2">
-                      {country.flag && <span className="text-lg">{country.flag}</span>}
+                      {country.flag && (
+                        <Image 
+                          src={country.flag}
+                          alt={country.name}
+                          width={20}
+                          height={20}
+                          className="h-5 w-5"
+                        />
+                      )}
                       <span>{country.name}</span>
                     </div>
                     </SelectItem>
