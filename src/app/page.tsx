@@ -32,15 +32,15 @@ export default function Home() {
         <Tabs defaultValue="daily" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="daily">
-              <CalendarDays className="mr-2 h-4 w-4" />
+              <CalendarDays className="mr-2 h-4 w-4 text-primary" />
               Encuentros del día
             </TabsTrigger>
             <TabsTrigger value="by-date">
-              <Calendar className="mr-2 h-4 w-4" />
+              <Calendar className="mr-2 h-4 w-4 text-primary" />
               Por fecha
             </TabsTrigger>
             <TabsTrigger value="by-league">
-              <Shield className="mr-2 h-4 w-4" />
+              <Shield className="mr-2 h-4 w-4 text-primary" />
               Por liga
             </TabsTrigger>
           </TabsList>
