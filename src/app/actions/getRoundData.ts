@@ -180,15 +180,17 @@ async function getLastNMatchesStandings(teamId: string, season: string, league_i
 function checkIsFavorite(standings: any, last3: any, last3HomeAway: any, homeAwayStandings: any, opponentStandings: any): boolean {
     if (!standings || !last3 || !last3HomeAway || !homeAwayStandings || !opponentStandings) return false;
     if (standings.played === 0 || homeAwayStandings.played === 0 || opponentStandings.played === 0) return false;
+
     if (standings.played < 9) return false;
-    if (last3.goalsAgainst >= 3) return false;
-    if (last3.goalsFor <= 2) return false;
-    if (last3HomeAway.goalsAgainst >= 3) return false;
-    if (last3HomeAway.goalsFor <= 2) return false;
-    if ((standings.won / standings.played) * 100 <= 45) return false;
-    if ((homeAwayStandings.lost / homeAwayStandings.played) * 100 >= 35) return false;
-    if ((opponentStandings.won / opponentStandings.played) * 100 >= 50) return false;
-    
+    if (last3.goalsAgainst >= 4) return false;
+    if (last3.goalsFor <= 3) return false;
+    if (last3HomeAway.goalsAgainst >= 4) return false;
+    if (last3HomeAway.goalsFor <= 3) return false;
+    if ((standings.won / standings.played) * 100 <= 46) return false;
+    if ((homeAwayStandings.lost / homeAwayStandings.played) * 100 >= 33) return false;
+    if ((opponentStandings.won / opponentStandings.played) * 100 >= 40) return false;
+    if ((opponentStandings.lost / opponentStandings.played) * 100 <= 33) return false;
+
     return true;
 }
 
