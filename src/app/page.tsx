@@ -55,8 +55,11 @@ export default function Home() {
           </TabsContent>
         </Tabs>
       </main>
-      <footer className="w-full py-4 text-center text-sm text-muted-foreground">
-        © 2025 Fútbol Stats Zone. Todos los derechos reservados.
+      <footer className="w-full py-4 px-4 md:px-0 text-center text-sm text-muted-foreground">
+        <p>© 2025 Fútbol Stats Zone. Todos los derechos reservados.</p>
+        <p className="mt-2">
+          Fútbol Stats Zone no está afiliado de ninguna manera con ninguna de las ligas, equipos o federaciones mencionadas en este sitio. Todos los nombres de equipos, escudos y nombres de ligas son marcas comerciales de sus respectivos propietarios. Los datos estadísticos se proporcionan únicamente con fines informativos y de entretenimiento.
+        </p>
       </footer>
     </div>
   );
