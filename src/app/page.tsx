@@ -2,8 +2,9 @@ import { AdBanner } from '@/components/ad-banner';
 import { DailyMatches } from '@/components/daily-matches';
 import { MatchesByDate } from '@/components/matches-by-date';
 import { MatchesByLeague } from '@/components/matches-by-league';
+import { MatchesByFavorite } from '@/components/matches-by-favorite';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, CalendarDays, Shield } from 'lucide-react';
+import { Calendar, CalendarDays, Shield, Star } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Home() {
@@ -30,7 +31,7 @@ export default function Home() {
         </div>
         
         <Tabs defaultValue="daily" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="daily">
               <CalendarDays className="mr-2 h-4 w-4 text-primary" />
               Encuentros del día
@@ -43,6 +44,10 @@ export default function Home() {
               <Shield className="mr-2 h-4 w-4 text-primary" />
               Por liga
             </TabsTrigger>
+            <TabsTrigger value="by-favorite">
+              <Star className="mr-2 h-4 w-4 text-primary" />
+              Favorito
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="daily">
             <DailyMatches />
@@ -52,6 +57,9 @@ export default function Home() {
           </TabsContent>
           <TabsContent value="by-league">
             <MatchesByLeague />
+          </TabsContent>
+           <TabsContent value="by-favorite">
+            <MatchesByFavorite />
           </TabsContent>
         </Tabs>
       </main>

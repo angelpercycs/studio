@@ -370,3 +370,154 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
     }
 }
+
+function checkIsFavoriteTeam(standings: any): boolean {
+    if (!standings || standings.played < 8) return false;
+    const winRate = (standings.won / standings.played) * 100;
+    const lossRate = (standings.lost / standings.played) * 100;
+    return winRate > 45 && lossRate < 33;
+}
+
+export async function getTeamsByLeague(leagueId: string, season: string) {
+    try {
+        if (!leagueId || !season) return { data: [], error: null };
+
+        const { data: matches, error: matchesError } = await supabase
+            .from('matches')
+            .select(`
+                team1_id,
+                team2_id,
+                team1:teams!matches_team1_id_fkey(id, name),
+                team2:teams!matches_team2_id_fkey(id, name)
+            `)
+            .eq('league_id', leagueId)
+            .eq('season', season)
+            .filter('team1_score', 'not.is', null)
+            .filter('team2_score', 'not.is', null);
+
+        if (matchesError) {
+            console.error('Error fetching matches for league team list:', matchesError);
+            return { data: null, error: `Error de Supabase: ${matchesError.message}` };
+        }
+        
+        if (!matches) return { data: [], error: null };
+        
+        const teamsMap = new Map<string, { id: string, name: string }>();
+        matches.forEach(match => {
+            if (match.team1 && !teamsMap.has(match.team1.id)) teamsMap.set(match.team1.id, { id: match.team1.id, name: match.team1.name });
+            if (match.team2 && !teamsMap.has(match.team2.id)) teamsMap.set(match.team2.id, { id: match.team2.id, name: match.team2.name });
+        });
+
+        const teamsData = Array.from(teamsMap.values());
+
+        const standingsPromises = teamsData.map(team => 
+            getTeamStandings(team.id, season, leagueId, new Date().toISOString())
+        );
+        const standingsResults = await Promise.all(standingsPromises);
+
+        const favoriteTeams = teamsData
+            .map((team, index) => ({ team, standings: standingsResults[index] }))
+            .filter(({ standings }) => checkIsFavoriteTeam(standings))
+            .map(({ team }) => ({ id: team.id, name: team.name }));
+
+        return { data: favoriteTeams, error: null };
+    } catch (e: any) {
+        console.error('Unexpected error in getTeamsByLeague:', e);
+        return { data: null, error: `An unexpected error occurred: ${e.message}` };
+    }
+}
+
+export async function getTeamMatches(teamId: string, leagueId: string, season: string) {
+     try {
+        if (!teamId || !leagueId || !season) return { data: [], error: null };
+
+        const { data: matchesData, error: matchesError } = await supabase
+            .from('matches')
+            .select(`
+                id,
+                match_date,
+                match_date_iso:match_date,
+                team1_id,
+                team2_id,
+                league_id,
+                season,
+                team1_score,
+                team2_score,
+                matchday,
+                team1:teams!matches_team1_id_fkey(id, name),
+                team2:teams!matches_team2_id_fkey(id, name)
+            `)
+            .eq('league_id', leagueId)
+            .eq('season', season)
+            .or(`team1_id.eq.${teamId},team2_id.eq.${teamId}`)
+            .order('match_date', { ascending: false });
+
+        if (matchesError) {
+            console.error('Error fetching matches by team:', matchesError);
+            return { data: null, error: `Error de Supabase: ${matchesError.message}` };
+        }
+        
+        if (!matchesData || matchesData.length === 0) {
+            return { data: [], error: null };
+        }
+        
+        const leaguesMap = await getLeagues();
+        
+        const matchesWithLeagues = matchesData.map(match => ({
+            ...match,
+            league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } }
+        }));
+        
+        const statsPromises = matchesWithLeagues.map(async match => {
+            if (!match.team1_id || !match.team2_id || !match.season || !match.league_id) {
+                return { ...match, favorite: null };
+            }
+             try {
+                const [team1Standings, team2Standings, team1Last3Data, team2Last3Data] = await Promise.all([
+                    getTeamStandings(match.team1_id, match.season, match.league_id, match.match_date),
+                    getTeamStandings(match.team2_id, match.season, match.league_id, match.match_date),
+                    getLastNMatchesStandings(match.team1_id, match.season, match.league_id, true, match.match_date),
+                    getLastNMatchesStandings(match.team2_id, match.season, match.league_id, false, match.match_date)
+                ]);
+
+                const isTeam1Favorite = checkIsFavorite(team1Standings, team1Last3Data?.all, team1Last3Data?.homeAway, team1Standings?.home, team2Standings);
+                const isTeam2Favorite = checkIsFavorite(team2Standings, team2Last3Data?.all, team2Last3Data?.homeAway, team2Standings?.away, team1Standings);
+
+                let favorite = null;
+                if (isTeam1Favorite && !isTeam2Favorite) favorite = 'team1';
+                else if (!isTeam1Favorite && isTeam2Favorite) favorite = 'team2';
+
+                return {
+                    ...match,
+                    team1_standings: team1Standings,
+                    team2_standings: team2Standings,
+                    team1_last_3: team1Last3Data?.all,
+                    team2_last_3: team2Last3Data?.all,
+                    team1_last_3_home_away: team1Last3Data?.homeAway,
+                    team2_last_3_home_away: team2Last3Data?.homeAway,
+                    favorite
+                };
+            } catch (error) {
+                console.error('Error processing stats for match', match.id, error);
+                return { ...match, favorite: null };
+            }
+        });
+        
+        const enrichedMatches = await Promise.all(statsPromises);
+        
+        const playedMatches = enrichedMatches.filter(m => m.team1_score !== null && m.team2_score !== null);
+        const upcomingMatches = enrichedMatches.filter(m => m.team1_score === null && m.team2_score === null);
+        const nextMatch = upcomingMatches.length > 0 ? [upcomingMatches[upcomingMatches.length - 1]] : [];
+        const filteredPlayedMatches = playedMatches.filter(m => {
+            if (!m.matchday) return false;
+            const matchdayNumber = parseInt(m.matchday.toString().replace( /^\D+/g, ''));
+            return matchdayNumber >= 9;
+        });
+
+        return { data: [...nextMatch, ...filteredPlayedMatches], error: null };
+
+    } catch (e: any) {
+        console.error('Unexpected error in getTeamMatches:', e);
+        return { data: null, error: `An unexpected error occurred: ${e.message}` };
+    }
+}
