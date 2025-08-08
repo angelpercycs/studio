@@ -178,23 +178,29 @@ async function getLastNMatchesStandings(teamId: string, season: string, league_i
     return { all: allStats, homeAway: homeAwayStats };
 }
 
-function checkIsFavorite(standings: any, last3: any, last3HomeAway: any, homeAwayStandings: any, opponentStandings: any): boolean {
-    if (!standings || !last3 || !last3HomeAway || !homeAwayStandings || !opponentStandings) return false;
-    if (standings.played === 0 || homeAwayStandings.played === 0 || opponentStandings.played === 0) return false;
-    
-    if (standings.played < 9) return false;
-    if (last3.goalsAgainst >= 4) return false;
-    if (last3.goalsFor <= 3) return false;
-    if (last3HomeAway.goalsAgainst >= 4) return false;
-    if (last3HomeAway.goalsFor <= 3) return false;
-    if ((standings.won / standings.played) * 100 <= 46) return false;
-    if ((homeAwayStandings.lost / homeAwayStandings.played) * 100 >= 33) return false;
-    if ((opponentStandings.won / opponentStandings.played) * 100 >= 40) return false;
-    if ((opponentStandings.lost / opponentStandings.played) * 100 <= 33) return false;
+async function getFavoritesForMatches(matchIds: string[]): Promise<Record<string, string>> {
+    if (matchIds.length === 0) {
+        return {};
+    }
 
-    return true;
+    const { data, error } = await supabase
+        .from('analisis_estrategias_favorito')
+        .select('match_id, team_id')
+        .in('match_id', matchIds)
+        .eq('ranking', 1);
+
+    if (error) {
+        console.error('Error fetching favorites:', error);
+        return {};
+    }
+
+    const favoritesMap: Record<string, string> = {};
+    for (const fav of data) {
+        favoritesMap[fav.match_id] = fav.team_id;
+    }
+
+    return favoritesMap;
 }
-
 
 export async function getMatchesByDate(dateString: string) {
     try {
@@ -232,16 +238,29 @@ export async function getMatchesByDate(dateString: string) {
         }
         
         const leaguesMap = await getLeagues();
+        const matchIds = matchesData.map(m => m.id);
+        const favoritesMap = await getFavoritesForMatches(matchIds);
 
-        const matchesWithLeagues = matchesData.map(match => ({
-            ...match,
-            league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } }
-        }));
-
+        const matchesWithLeagues = matchesData.map(match => {
+            let favorite = null;
+            const favoriteTeamId = favoritesMap[match.id];
+            if (favoriteTeamId) {
+                if (favoriteTeamId === match.team1_id) {
+                    favorite = 'team1';
+                } else if (favoriteTeamId === match.team2_id) {
+                    favorite = 'team2';
+                }
+            }
+            return {
+                ...match,
+                league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } },
+                favorite
+            };
+        });
 
         const statsPromises = matchesWithLeagues.map(async (match) => {
             if (!match.team1_id || !match.team2_id || !match.season || !match.league_id) {
-                return { ...match, favorite: null };
+                return { ...match };
             }
 
             try {
@@ -252,14 +271,6 @@ export async function getMatchesByDate(dateString: string) {
                     getLastNMatchesStandings(match.team2_id, match.season, match.league_id, false, match.match_date)
                 ]);
 
-                const isTeam1Favorite = checkIsFavorite(team1Standings, team1Last3Data?.all, team1Last3Data?.homeAway, team1Standings?.home, team2Standings);
-                const isTeam2Favorite = checkIsFavorite(team2Standings, team2Last3Data?.all, team2Last3Data?.homeAway, team2Standings?.away, team1Standings);
-
-                let favorite = null;
-                if (isTeam1Favorite && !isTeam2Favorite) favorite = 'team1';
-                else if (!isTeam1Favorite && isTeam2Favorite) favorite = 'team2';
-
-
                 return {
                     ...match,
                     team1_standings: team1Standings,
@@ -268,7 +279,6 @@ export async function getMatchesByDate(dateString: string) {
                     team2_last_3: team2Last3Data?.all,
                     team1_last_3_home_away: team1Last3Data?.homeAway,
                     team2_last_3_home_away: team2Last3Data?.homeAway,
-                    favorite
                 };
             } catch (error) {
                 console.error('Error processing stats for match', match.id, error);
