@@ -184,7 +184,7 @@ async function getFavoritesForMatches(matchIds: string[]): Promise<Record<string
     }
 
     const { data, error } = await supabase
-        .from('analisis_estrategias_favorito')
+        .from('5_analisis_favorito')
         .select('match_id, team_id')
         .in('match_id', matchIds)
         .eq('ranking', 1);
