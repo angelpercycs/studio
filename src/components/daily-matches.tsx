@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getMatchesByDate } from "@/app/actions/getMatches";
 import { MatchList } from "@/components/match-list";
 import { subDays, addDays, format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
@@ -16,23 +15,6 @@ export function DailyMatches() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('today');
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
-
-  const getDayName = (date: Date) => {
-    return format(date, 'EEEE', { locale: es });
-  };
-  
-  const getTabLabel = (tab: string) => {
-    switch (tab) {
-      case 'yesterday':
-        return `Ayer (${getDayName(subDays(new Date(), 1))})`;
-      case 'today':
-        return `Hoy (${getDayName(new Date())})`;
-      case 'tomorrow':
-        return `Mañana (${getDayName(addDays(new Date(), 1))})`;
-      default:
-        return '';
-    }
-  };
 
   const fetchMatches = useCallback(async (tab: string) => {
     setLoading(true);
@@ -83,9 +65,9 @@ export function DailyMatches() {
       <CardContent className="pt-6">
         <Tabs defaultValue="today" className="w-full" onValueChange={handleTabChange} value={activeTab}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="yesterday">{getTabLabel('yesterday')}</TabsTrigger>
-            <TabsTrigger value="today">{getTabLabel('today')}</TabsTrigger>
-            <TabsTrigger value="tomorrow">{getTabLabel('tomorrow')}</TabsTrigger>
+            <TabsTrigger value="yesterday">Ayer</TabsTrigger>
+            <TabsTrigger value="today">Hoy</TabsTrigger>
+            <TabsTrigger value="tomorrow">Mañana</TabsTrigger>
           </TabsList>
           <TabsContent value={activeTab} key={activeTab} className="mt-4">
             {hasAnyFavorite && (
