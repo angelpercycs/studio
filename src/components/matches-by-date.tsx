@@ -56,6 +56,10 @@ export function MatchesByDate() {
     return matches;
   }, [matches, showOnlyFavorites]);
 
+  const formatDateWithDay = (date: Date) => {
+    return format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -68,10 +72,10 @@ export function MatchesByDate() {
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
-                className="w-full sm:w-[280px] justify-start text-left font-normal"
+                className="w-full sm:w-auto justify-start text-left font-normal"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PPP", { locale: es }) : <span>Selecciona una fecha</span>}
+                {selectedDate ? formatDateWithDay(selectedDate) : <span>Selecciona una fecha</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">

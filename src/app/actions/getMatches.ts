@@ -241,7 +241,7 @@ export async function getMatchesByDate(dateString: string) {
         const matchIds = matchesData.map(m => m.id);
         const favoritesMap = await getFavoritesForMatches(matchIds);
 
-        const matchesWithLeagues = matchesData.map(match => {
+        const matchesWithLeaguesAndFavorites = matchesData.map(match => {
             let favorite = null;
             const favoriteTeamId = favoritesMap[match.id];
             if (favoriteTeamId) {
@@ -257,40 +257,47 @@ export async function getMatchesByDate(dateString: string) {
                 favorite
             };
         });
-
-        const statsPromises = matchesWithLeagues.map(async (match) => {
-            if (!match.team1_id || !match.team2_id || !match.season || !match.league_id) {
-                return { ...match };
-            }
-
-            try {
-                const [team1Standings, team2Standings, team1Last3Data, team2Last3Data] = await Promise.all([
-                    getTeamStandings(match.team1_id, match.season, match.league_id, match.match_date),
-                    getTeamStandings(match.team2_id, match.season, match.league_id, match.match_date),
-                    getLastNMatchesStandings(match.team1_id, match.season, match.league_id, true, match.match_date),
-                    getLastNMatchesStandings(match.team2_id, match.season, match.league_id, false, match.match_date)
-                ]);
-
-                return {
-                    ...match,
-                    team1_standings: team1Standings,
-                    team2_standings: team2Standings,
-                    team1_last_3: team1Last3Data?.all,
-                    team2_last_3: team2Last3Data?.all,
-                    team1_last_3_home_away: team1Last3Data?.homeAway,
-                    team2_last_3_home_away: team2Last3Data?.homeAway,
-                };
-            } catch (error) {
-                console.error('Error processing stats for match', match.id, error);
-                return { ...match, favorite: null };
-            }
-        });
-
-        const enrichedMatches = await Promise.all(statsPromises);
         
-        return { data: enrichedMatches, error: null };
+        return { data: matchesWithLeaguesAndFavorites, error: null };
     } catch (e: any) {
         console.error('Unexpected error in getMatchesByDate:', e);
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
+    }
+}
+
+export async function getMatchStats(match: {
+    team1_id: string;
+    team2_id: string;
+    season: string;
+    league_id: string;
+    match_date: string;
+    id: string;
+}) {
+    if (!match.team1_id || !match.team2_id || !match.season || !match.league_id) {
+        return { data: null, error: "Faltan datos para obtener estadísticas." };
+    }
+
+    try {
+        const [team1Standings, team2Standings, team1Last3Data, team2Last3Data] = await Promise.all([
+            getTeamStandings(match.team1_id, match.season, match.league_id, match.match_date),
+            getTeamStandings(match.team2_id, match.season, match.league_id, match.match_date),
+            getLastNMatchesStandings(match.team1_id, match.season, match.league_id, true, match.match_date),
+            getLastNMatchesStandings(match.team2_id, match.season, match.league_id, false, match.match_date)
+        ]);
+
+        return {
+            data: {
+                team1_standings: team1Standings,
+                team2_standings: team2Standings,
+                team1_last_3: team1Last3Data?.all,
+                team2_last_3: team2Last3Data?.all,
+                team1_last_3_home_away: team1Last3Data?.homeAway,
+                team2_last_3_home_away: team2Last3Data?.homeAway,
+            }, 
+            error: null
+        };
+    } catch (error) {
+        console.error('Error processing stats for match', match.id, error);
+        return { data: null, error: "Error al procesar las estadísticas del partido." };
     }
 }

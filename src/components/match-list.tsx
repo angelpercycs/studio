@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Progress } from "./ui/progress";
+import { getMatchStats } from "@/app/actions/getMatches";
 
 
 const MatchDaySkeleton = () => (
@@ -16,6 +17,17 @@ const MatchDaySkeleton = () => (
       <Skeleton key={i} className="h-20 w-full rounded-lg" />
     ))}
   </div>
+);
+
+const StatsSkeleton = () => (
+    <div className="space-y-6 p-4">
+        {[...Array(3)].map((_, i) => (
+            <div key={i} className="space-y-2">
+                <Skeleton className="h-6 w-1/2 rounded" />
+                <Skeleton className="h-24 w-full rounded-lg" />
+            </div>
+        ))}
+    </div>
 );
 
 const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { title: string, homeStats: any, awayStats: any, homeName: string, awayName: string }) => {
@@ -71,6 +83,9 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
 
 const MatchRow = ({ match }: { match: any }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [matchDetails, setMatchDetails] = useState<any | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
   
   const timeDisplay = match.match_date_iso 
       ? new Date(match.match_date_iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
@@ -81,6 +96,21 @@ const MatchRow = ({ match }: { match: any }) => {
   const isFavorite = isFavoriteTeam1 || isFavoriteTeam2;
   const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : match.team2?.name;
 
+  const handleSheetOpen = useCallback(async (isOpen: boolean) => {
+    setIsSheetOpen(isOpen);
+    if (isOpen && !matchDetails) {
+        setDetailsLoading(true);
+        setDetailsError(null);
+        const result = await getMatchStats(match);
+        if (result.error) {
+            setDetailsError(result.error);
+        } else {
+            setMatchDetails(result.data);
+        }
+        setDetailsLoading(false);
+    }
+  }, [match, matchDetails]);
+
   const BlinkingLight = () => (
     <div className="relative flex h-3 w-3 mx-2">
       <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
@@ -89,7 +119,7 @@ const MatchRow = ({ match }: { match: any }) => {
   );
 
   return (
-    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+    <Sheet open={isSheetOpen} onOpenChange={handleSheetOpen}>
       <SheetTrigger asChild>
          <div className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer">
             <div className="w-16 text-muted-foreground text-center text-sm">{timeDisplay}</div>
@@ -131,44 +161,48 @@ const MatchRow = ({ match }: { match: any }) => {
               </div>
             )}
         </SheetHeader>
-        <div className="p-4">
-          {match.team1_standings && match.team2_standings && (
-            <>
-              <StandingsTable 
-                title="Clasificación General"
-                homeStats={match.team1_standings}
-                awayStats={match.team2_standings}
-                homeName={match.team1?.name}
-                awayName={match.team2?.name}
-              />
-              <StandingsTable 
-                title="Clasificación Local/Visitante"
-                homeStats={match.team1_standings?.home}
-                awayStats={match.team2_standings?.away}
-                homeName={match.team1?.name}
-                awayName={match.team2?.name}
-              />
-            </>
-          )}
-          {match.team1_last_3 && match.team2_last_3 && (
-            <StandingsTable 
-              title="Últimos 3 encuentros (General)"
-              homeStats={match.team1_last_3}
-              awayStats={match.team2_last_3}
-              homeName={match.team1?.name}
-              awayName={match.team2?.name}
-            />
-          )}
-          {match.team1_last_3_home_away && match.team2_last_3_home_away && (
-            <StandingsTable 
-              title="Últimos 3 encuentros (Local/Visitante)"
-              homeStats={match.team1_last_3_home_away}
-              awayStats={match.team2_last_3_home_away}
-              homeName={match.team1?.name}
-              awayName={match.team2?.name}
-            />
-          )}
-        </div>
+        {detailsLoading ? (
+            <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        ) : detailsError ? (
+            <Alert variant="destructive" className="m-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{detailsError}</AlertDescription>
+            </Alert>
+        ) : matchDetails ? (
+            <div className="p-4">
+                <StandingsTable 
+                    title="Clasificación General"
+                    homeStats={matchDetails.team1_standings}
+                    awayStats={matchDetails.team2_standings}
+                    homeName={match.team1?.name}
+                    awayName={match.team2?.name}
+                />
+                <StandingsTable 
+                    title="Clasificación Local/Visitante"
+                    homeStats={matchDetails.team1_standings?.home}
+                    awayStats={matchDetails.team2_standings?.away}
+                    homeName={match.team1?.name}
+                    awayName={match.team2?.name}
+                />
+                <StandingsTable 
+                    title="Últimos 3 encuentros (General)"
+                    homeStats={matchDetails.team1_last_3}
+                    awayStats={matchDetails.team2_last_3}
+                    homeName={match.team1?.name}
+                    awayName={match.team2?.name}
+                />
+                <StandingsTable 
+                    title="Últimos 3 encuentros (Local/Visitante)"
+                    homeStats={matchDetails.team1_last_3_home_away}
+                    awayStats={matchDetails.team2_last_3_home_away}
+                    homeName={match.team1?.name}
+                    awayName={match.team2?.name}
+                />
+            </div>
+        ) : null}
       </SheetContent>
     </Sheet>
   );
