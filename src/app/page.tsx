@@ -19,9 +19,12 @@ export default function Home() {
             height={48}
             className="baby-blue-icon"
           />
-          <h1 className="text-xl font-bold tracking-tight">
-            Fútbol Stats Zone
-          </h1>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">
+              Fútbol Stats Zone
+            </h1>
+            <p className="text-sm text-muted-foreground">Pronósticos de Fútbol</p>
+          </div>
         </header>
 
         <div className="mb-4 flex w-full justify-center">
