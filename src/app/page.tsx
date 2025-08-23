@@ -66,17 +66,33 @@ export default function Home() {
           </TabsContent>
         </Tabs>
       </main>
-      <footer className="w-full py-4 px-4 md:px-0 text-center text-sm text-muted-foreground">
-        <p className="mb-2">© 2025 Fútbol Stats Zone. Todos los derechos reservados.</p>
-        <p className="mb-2">
-          Fútbol Stats Zone es un sitio independiente y no está afiliado, patrocinado ni autorizado por ninguna liga, federación, club o entidad oficial mencionada en este sitio.
-        </p>
-        <p className="mb-2">
-          Todos los nombres de equipos, competiciones y marcas comerciales que puedan aparecer son propiedad de sus respectivos titulares y se utilizan únicamente con fines descriptivos e informativos.
-        </p>
-        <p>
-          La información publicada en este sitio, incluyendo resultados y pronósticos, se ofrece únicamente con fines de entretenimiento y no constituye consejo de apuestas ni relación contractual alguna.
-        </p>
+      <footer className="w-full py-4 px-4 md:px-0 text-center text-xs text-muted-foreground space-y-4">
+        <div>
+            <p className="mb-2">© 2025 Fútbol Stats Zone. Todos los derechos reservados.</p>
+            <p className="mb-2">
+            Fútbol Stats Zone es un sitio independiente y no está afiliado, patrocinado ni autorizado por ninguna liga, federación, club o entidad oficial mencionada en este sitio.
+            </p>
+            <p className="mb-2">
+            Todos los nombres de equipos, competiciones y marcas comerciales que puedan aparecer son propiedad de sus respectivos titulares y se utilizan únicamente con fines descriptivos e informativos.
+            </p>
+            <p>
+            La información publicada en este sitio, incluyendo resultados y pronósticos, se ofrece únicamente con fines de entretenimiento y no constituye consejo de apuestas ni relación contractual alguna.
+            </p>
+        </div>
+        <div className="border-t border-border/50 pt-4">
+            <h3 className="font-semibold mb-2 text-sm">Información Regulatoria (Perú)</h3>
+            <div className="space-y-2">
+                <p>
+                    <span className="font-semibold">BETSSON:</span> 18+ | SFTG Limited | RUC: 20612423371 | DOMICILIO FISCAL: MANUEL A. OLAECHEA 1470, OFICINA 201, DISTRITO DE MIRAFLORES, PROVINCIA Y DEPARTAMENTO DE LIMA | MINCETUR License #: 11002586010000 & 21002586010000.
+                </p>
+                <p>
+                    <span className="font-semibold">INKABET:</span> 18+ | Lucky Torito S.A.C. | MINCETUR License #: 11002603010000 & 21002603010000.
+                </p>
+                <p className="italic">
+                    "El juego y las apuestas deportivas a distancia realizados en exceso pueden causar ludopatía".
+                </p>
+            </div>
+        </div>
       </footer>
     </div>
   );
