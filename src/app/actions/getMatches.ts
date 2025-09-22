@@ -43,7 +43,7 @@ async function getTeamStandings(teamId: string, season: string, league_id: strin
     if (!teamId || !season || !league_id) return null;
     const { data: allMatches, error: matchesError } = await supabase
         .from('matches')
-        .select('team1_id, team2_id, team1_score, team2_score')
+        .select('team1_id, team2_id, team1_score, team2_score, season')
         .eq('season', season)
         .eq('league_id', league_id)
         .lt('match_date', matchDate)
@@ -64,7 +64,9 @@ async function getTeamStandings(teamId: string, season: string, league_id: strin
 
     if (!allMatches) return stats;
 
-    for (const match of allMatches) {
+    const seasonMatches = allMatches.filter(m => m.season === season);
+
+    for (const match of seasonMatches) {
         const isHome = match.team1_id === teamId;
         const teamScore = isHome ? match.team1_score : match.team2_score;
         const opponentScore = isHome ? match.team2_score : match.team1_score;
@@ -104,7 +106,7 @@ async function getLastNMatchesStandings(teamId: string, season: string, league_i
     
     let query = supabase
         .from('matches')
-        .select('team1_id, team2_id, team1_score, team2_score')
+        .select('team1_id, team2_id, team1_score, team2_score, season')
         .eq('season', season)
         .eq('league_id', league_id)
         .lt('match_date', matchDate)
@@ -125,6 +127,7 @@ async function getLastNMatchesStandings(teamId: string, season: string, league_i
         const stats = { ...defaultStats };
         if (!matches) return stats;
         for (const match of matches) {
+            if (match.season !== season) continue;
             const teamIsHomeInMatch = match.team1_id === teamId;
             if (forHome !== null && forHome !== teamIsHomeInMatch) {
                 continue;
@@ -152,7 +155,7 @@ async function getLastNMatchesStandings(teamId: string, season: string, league_i
     
     let homeAwayQuery = supabase
         .from('matches')
-        .select('team1_id, team2_id, team1_score, team2_score')
+        .select('team1_id, team2_id, team1_score, team2_score, season')
         .eq('season', season)
         .eq('league_id', league_id)
         .lt('match_date', matchDate)
