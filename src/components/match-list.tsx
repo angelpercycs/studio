@@ -240,31 +240,35 @@ export const MatchList = ({ matches, error, loading }: { matches: any[], error: 
   }
 
   const groupedByLeague = matches.reduce((acc, match) => {
+    const countryName = match.league?.countries?.name || 'Unknown Country';
     const leagueName = match.league?.name || 'Unknown League';
-    if (!acc[leagueName]) {
-      acc[leagueName] = {
+    const groupKey = `${countryName}-${leagueName}`;
+
+    if (!acc[groupKey]) {
+      acc[groupKey] = {
         matches: [],
-        country: match.league?.countries?.name || 'Unknown Country',
+        country: countryName,
+        leagueName: leagueName,
         flag: match.league?.countries?.flag || null
       };
     }
-    acc[leagueName].matches.push(match);
+    acc[groupKey].matches.push(match);
     return acc;
-  }, {} as Record<string, { matches: any[], country: string, flag: string | null }>);
+  }, {} as Record<string, { matches: any[], country: string, leagueName: string, flag: string | null }>);
 
-  const sortedLeagues = Object.entries(groupedByLeague).sort(([leagueA, dataA]: [string, any], [leagueB, dataB]: [string, any]) => {
+  const sortedLeagues = Object.entries(groupedByLeague).sort(([, dataA], [, dataB]) => {
     const countryCompare = dataA.country.localeCompare(dataB.country);
     if (countryCompare !== 0) {
       return countryCompare;
     }
-    return leagueA.localeCompare(leagueB);
+    return dataA.leagueName.localeCompare(dataB.leagueName);
   });
 
   return (
     <div className="w-full space-y-4 mt-4">
-      {sortedLeagues.map(([leagueName, { matches: leagueMatches, country, flag }]: [string, any]) => {
+      {sortedLeagues.map(([groupKey, { matches: leagueMatches, country, leagueName, flag }]) => {
         return (
-          <Card key={leagueName}>
+          <Card key={groupKey}>
             <CardContent className="p-0">
               <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
                 {flag && <img src={flag} alt={country} className="h-5 w-5" />}
