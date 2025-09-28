@@ -14,7 +14,6 @@ export function DailyMatches() {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('today');
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [pinnedMatches, setPinnedMatches] = useLocalStorageWithExpiry<string[]>('pinnedMatches', [], 2);
 
@@ -44,11 +43,11 @@ export function DailyMatches() {
   }, []);
 
   useEffect(() => {
-    fetchMatches(activeTab);
-  }, [activeTab, fetchMatches]);
+    fetchMatches('today');
+  }, [fetchMatches]);
   
   const handleTabChange = (value: string) => {
-      setActiveTab(value);
+      fetchMatches(value);
   }
   
   const handlePinToggle = (matchId: string) => {
@@ -84,13 +83,13 @@ export function DailyMatches() {
   return (
     <Card>
       <CardContent className="pt-6">
-        <Tabs defaultValue="today" className="w-full" onValueChange={handleTabChange} value={activeTab}>
+        <Tabs defaultValue="today" className="w-full" onValueChange={handleTabChange}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="yesterday">Ayer</TabsTrigger>
             <TabsTrigger value="today">Hoy</TabsTrigger>
             <TabsTrigger value="tomorrow">Mañana</TabsTrigger>
           </TabsList>
-          <TabsContent value={activeTab} key={activeTab} className="mt-4">
+          <div className="mt-4">
             {hasAnyFavorite && (
               <Alert variant="destructive" className="mb-4">
                 <div className="flex items-center justify-between">
@@ -115,7 +114,7 @@ export function DailyMatches() {
                 onPinToggle={handlePinToggle}
                 pinnedMatchIds={pinnedMatches}
             />
-          </TabsContent>
+          </div>
         </Tabs>
       </CardContent>
     </Card>
