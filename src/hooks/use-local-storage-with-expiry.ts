@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-function getStorageValue<T>(key: string, defaultValue: T, daysToLive: number): T {
+function getStorageValue<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') {
     return defaultValue;
   }
@@ -28,30 +28,34 @@ function getStorageValue<T>(key: string, defaultValue: T, daysToLive: number): T
 
 export function useLocalStorageWithExpiry<T>(key: string, defaultValue: T, daysToLive: number) {
   const [value, setValue] = useState<T>(() => {
-    return getStorageValue(key, defaultValue, daysToLive);
+    return getStorageValue(key, defaultValue);
   });
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
+  const setStoredValue = useCallback((newValue: T | ((prevState: T) => T)) => {
+     if (typeof window === 'undefined') {
       return;
     }
-    const savedValue = getStorageValue(key, defaultValue, daysToLive);
-    if (JSON.stringify(value) !== JSON.stringify(savedValue)) {
-        setValue(savedValue);
-    }
-  }, [key, defaultValue, daysToLive]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
+    const valueToStore = newValue instanceof Function ? newValue(getStorageValue(key, defaultValue)) : newValue;
+    setValue(valueToStore);
     const now = new Date();
     const item = {
-      value,
+      value: valueToStore,
       expiry: now.getTime() + daysToLive * 24 * 60 * 60 * 1000,
     };
     localStorage.setItem(key, JSON.stringify(item));
-  }, [key, value, daysToLive]);
+  }, [key, defaultValue, daysToLive]);
 
-  return [value, setValue] as const;
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === key) {
+        setValue(getStorageValue(key, defaultValue));
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [key, defaultValue]);
+  
+  return [value, setStoredValue] as const;
 }

@@ -8,14 +8,42 @@ import { MatchList } from "@/components/match-list";
 import { subDays, addDays, format } from 'date-fns';
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { useLocalStorageWithExpiry } from "@/hooks/use-local-storage-with-expiry";
+
+const PINNED_MATCHES_STORAGE_KEY = 'pinnedDailyMatches';
+
+function getInitialPinnedMatches(): string[] {
+  if (typeof window === 'undefined') return [];
+  const saved = localStorage.getItem(PINNED_MATCHES_STORAGE_KEY);
+  if (saved) {
+    try {
+      const { ids, expiry } = JSON.parse(saved);
+      if (new Date().getTime() < expiry) {
+        return ids;
+      }
+      localStorage.removeItem(PINNED_MATCHES_STORAGE_KEY);
+    } catch (e) {
+      console.error("Error parsing pinned matches", e);
+    }
+  }
+  return [];
+};
+
 
 export function DailyMatches() {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
-  const [pinnedMatches, setPinnedMatches] = useLocalStorageWithExpiry<string[]>('pinnedMatches', [], 2);
+  const [pinnedMatchIds, setPinnedMatchIds] = useState<string[]>(getInitialPinnedMatches);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        const expiry = new Date().getTime() + 2 * 24 * 60 * 60 * 1000;
+        const dataToSave = JSON.stringify({ ids: pinnedMatchIds, expiry });
+        localStorage.setItem(PINNED_MATCHES_STORAGE_KEY, dataToSave);
+    }
+  }, [pinnedMatchIds]);
+
 
   const fetchMatches = useCallback(async (tab: string) => {
     setLoading(true);
@@ -50,20 +78,20 @@ export function DailyMatches() {
       fetchMatches(value);
   }
   
-  const handlePinToggle = (matchId: string) => {
-    setPinnedMatches(prev => 
+  const handlePinToggle = useCallback((matchId: string) => {
+    setPinnedMatchIds(prev => 
       prev.includes(matchId) 
         ? prev.filter(id => id !== matchId)
         : [...prev, matchId]
     );
-  };
+  }, []);
 
   const hasAnyFavorite = useMemo(() => {
     return !loading && matches.some(match => match.favorite);
   }, [matches, loading]);
 
   const { pinned, unpinned } = useMemo(() => {
-    const pinnedSet = new Set(pinnedMatches);
+    const pinnedSet = new Set(pinnedMatchIds);
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
@@ -76,9 +104,12 @@ export function DailyMatches() {
         unpinned.push(match);
       }
     });
+    
+    const allMatches = [...matches];
+    const pinnedFromAll = allMatches.filter(m => pinnedSet.has(m.id));
 
-    return { pinned, unpinned };
-  }, [matches, pinnedMatches, showOnlyFavorites]);
+    return { pinned: pinnedFromAll, unpinned };
+  }, [matches, pinnedMatchIds, showOnlyFavorites]);
 
   return (
     <Card>
@@ -112,7 +143,7 @@ export function DailyMatches() {
                 error={error} 
                 loading={loading}
                 onPinToggle={handlePinToggle}
-                pinnedMatchIds={pinnedMatches}
+                pinnedMatchIds={pinnedMatchIds}
             />
           </div>
         </Tabs>
