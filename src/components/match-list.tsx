@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Loader2, Pin } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Progress } from "./ui/progress";
 import { getMatchStats } from "@/app/actions/getMatches";
 import { cn } from "@/lib/utils";
@@ -98,21 +98,18 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : match.team2?.name;
 
   const handleOpenSheet = useCallback(async () => {
-    if (!isSheetOpen) {
-      setIsSheetOpen(true);
-      if (!matchDetails) {
-        setDetailsLoading(true);
-        setDetailsError(null);
-        const result = await getMatchStats(match);
-        if (result.error) {
-          setDetailsError(result.error);
-        } else {
-          setMatchDetails(result.data);
-        }
-        setDetailsLoading(false);
+    if (!matchDetails) {
+      setDetailsLoading(true);
+      setDetailsError(null);
+      const result = await getMatchStats(match);
+      if (result.error) {
+        setDetailsError(result.error);
+      } else {
+        setMatchDetails(result.data);
       }
+      setDetailsLoading(false);
     }
-  }, [isSheetOpen, match, matchDetails]);
+  }, [match, matchDetails]);
 
   const BlinkingLight = () => (
     <div className="relative flex h-3 w-3 mx-2">
@@ -127,8 +124,11 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }
 
   return (
-    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <div onClick={handleOpenSheet} className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
+    <Sheet open={isSheetOpen} onOpenChange={(open) => {
+      if(open) handleOpenSheet();
+      setIsSheetOpen(open);
+    }}>
+        <div onClick={() => setIsSheetOpen(true)} className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
           {onPinToggle && (
             <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center">
               <div className={cn(
