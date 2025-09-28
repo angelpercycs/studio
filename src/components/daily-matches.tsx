@@ -8,6 +8,7 @@ import { MatchList } from "@/components/match-list";
 import { subDays, addDays, format } from 'date-fns';
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useLocalStorageWithExpiry } from "@/hooks/use-local-storage-with-expiry";
 
 export function DailyMatches() {
   const [matches, setMatches] = useState<any[]>([]);
@@ -15,6 +16,7 @@ export function DailyMatches() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('today');
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [pinnedMatches, setPinnedMatches] = useLocalStorageWithExpiry<string[]>('pinnedMatches', [], 2);
 
   const fetchMatches = useCallback(async (tab: string) => {
     setLoading(true);
@@ -48,17 +50,36 @@ export function DailyMatches() {
   const handleTabChange = (value: string) => {
       setActiveTab(value);
   }
+  
+  const handlePinToggle = (matchId: string) => {
+    setPinnedMatches(prev => 
+      prev.includes(matchId) 
+        ? prev.filter(id => id !== matchId)
+        : [...prev, matchId]
+    );
+  };
 
   const hasAnyFavorite = useMemo(() => {
     return !loading && matches.some(match => match.favorite);
   }, [matches, loading]);
 
-  const filteredMatches = useMemo(() => {
-    if (showOnlyFavorites) {
-      return matches.filter(match => match.favorite);
-    }
-    return matches;
-  }, [matches, showOnlyFavorites]);
+  const { pinned, unpinned } = useMemo(() => {
+    const pinnedSet = new Set(pinnedMatches);
+    const pinned: any[] = [];
+    const unpinned: any[] = [];
+
+    const sourceMatches = showOnlyFavorites ? matches.filter(match => match.favorite) : matches;
+
+    sourceMatches.forEach(match => {
+      if (pinnedSet.has(match.id)) {
+        pinned.push(match);
+      } else {
+        unpinned.push(match);
+      }
+    });
+
+    return { pinned, unpinned };
+  }, [matches, pinnedMatches, showOnlyFavorites]);
 
   return (
     <Card>
@@ -86,7 +107,14 @@ export function DailyMatches() {
                 </div>
               </Alert>
             )}
-             <MatchList matches={filteredMatches} error={error} loading={loading} />
+             <MatchList 
+                matches={unpinned} 
+                pinnedMatches={pinned}
+                error={error} 
+                loading={loading}
+                onPinToggle={handlePinToggle}
+                pinnedMatchIds={pinnedMatches}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -4,11 +4,12 @@ import { useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Pin, PinOff } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Progress } from "./ui/progress";
 import { getMatchStats } from "@/app/actions/getMatches";
+import { cn } from "@/lib/utils";
 
 
 const MatchDaySkeleton = () => (
@@ -81,7 +82,7 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
     );
 };
 
-const MatchRow = ({ match }: { match: any }) => {
+const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [matchDetails, setMatchDetails] = useState<any | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -117,11 +118,16 @@ const MatchRow = ({ match }: { match: any }) => {
       <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
     </div>
   );
+  
+  const handlePinClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPinToggle?.(match.id);
+  }
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={handleSheetOpen}>
       <SheetTrigger asChild>
-         <div className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer">
+         <div className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
             <div className="w-16 text-muted-foreground text-center text-sm">{timeDisplay}</div>
             <div className="flex-grow space-y-1 text-sm">
                 <div className="flex justify-between items-center">
@@ -139,6 +145,14 @@ const MatchRow = ({ match }: { match: any }) => {
                     <span className="font-bold w-6 text-center">{match.team2_score ?? '-'}</span>
                 </div>
             </div>
+            {onPinToggle && (
+              <button onClick={handlePinClick} className={cn("ml-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-opacity", isPinned && "opacity-100")}>
+                {isPinned 
+                  ? <Pin className="h-5 w-5 text-primary fill-current" />
+                  : <Pin className="h-5 w-5 text-muted-foreground" />
+                }
+              </button>
+            )}
           </div>
       </SheetTrigger>
       <SheetContent className="w-full max-w-[90vw] sm:max-w-xl overflow-y-auto">
@@ -209,7 +223,7 @@ const MatchRow = ({ match }: { match: any }) => {
 }
 
 
-export const MatchList = ({ matches, error, loading }: { matches: any[], error: string | null, loading: boolean }) => {
+export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: string[] }) => {
 
   if (loading) {
     return <MatchDaySkeleton />;
@@ -231,7 +245,7 @@ export const MatchList = ({ matches, error, loading }: { matches: any[], error: 
     )
   }
 
-  if (!matches || matches.length === 0) {
+  if ((!matches || matches.length === 0) && (!pinnedMatches || pinnedMatches.length === 0)) {
     return (
       <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">
         <p>No hay encuentros para mostrar para esta fecha.</p>
@@ -263,9 +277,35 @@ export const MatchList = ({ matches, error, loading }: { matches: any[], error: 
     }
     return dataA.leagueName.localeCompare(dataB.leagueName);
   });
+  
+  const PinnedMatchesComponent = () => (
+    pinnedMatches && pinnedMatches.length > 0 && (
+       <Card>
+          <CardContent className="p-0">
+            <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
+              <Pin className="h-5 w-5" />
+              Partidos Fijados
+            </div>
+            <div>
+              <div className="divide-y">
+                {pinnedMatches.map((match: any) => 
+                  <MatchRow 
+                    key={match.id} 
+                    match={match} 
+                    onPinToggle={onPinToggle} 
+                    isPinned={pinnedMatchIds?.includes(match.id)}
+                  />)}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+    )
+  );
+
 
   return (
     <div className="w-full space-y-4 mt-4">
+      <PinnedMatchesComponent />
       {sortedLeagues.map(([groupKey, { matches: leagueMatches, country, leagueName, flag }]) => {
         return (
           <Card key={groupKey}>
@@ -276,7 +316,13 @@ export const MatchList = ({ matches, error, loading }: { matches: any[], error: 
               </div>
               <div>
                 <div className="divide-y">
-                  {leagueMatches.map((match: any) => <MatchRow key={match.id} match={match} />)}
+                  {leagueMatches.map((match: any) => 
+                    <MatchRow 
+                        key={match.id} 
+                        match={match}
+                        onPinToggle={onPinToggle}
+                        isPinned={pinnedMatchIds?.includes(match.id)}
+                    />)}
                 </div>
               </div>
             </CardContent>
