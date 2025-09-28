@@ -9,7 +9,6 @@ import { MatchList } from "./match-list";
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "./ui/button";
-import Image from "next/image";
 
 interface Country {
   id: string;
@@ -21,6 +20,26 @@ interface League {
   id: string;
   name: string;
 }
+
+const PINNED_MATCHES_STORAGE_KEY = 'pinnedLeagueMatches';
+
+const getInitialPinnedMatches = (): string[] => {
+    if (typeof window === 'undefined') return [];
+    const saved = localStorage.getItem(PINNED_MATCHES_STORAGE_KEY);
+    if (saved) {
+        try {
+            const { ids, expiry } = JSON.parse(saved);
+            if (new Date().getTime() < expiry) {
+                return ids;
+            }
+            localStorage.removeItem(PINNED_MATCHES_STORAGE_KEY);
+        } catch (e) {
+            console.error("Error parsing pinned matches", e);
+        }
+    }
+    return [];
+};
+
 
 export function MatchesByLeague() {
   const [countries, setCountries] = useState<Country[]>([]);
@@ -34,6 +53,16 @@ export function MatchesByLeague() {
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
   const [selectedRound, setSelectedRound] = useState<string | null>(null);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [pinnedMatchIds, setPinnedMatchIds] = useState<string[]>(getInitialPinnedMatches);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        const expiry = new Date().getTime() + 2 * 24 * 60 * 60 * 1000;
+        const dataToSave = JSON.stringify({ ids: pinnedMatchIds, expiry });
+        localStorage.setItem(PINNED_MATCHES_STORAGE_KEY, dataToSave);
+    }
+  }, [pinnedMatchIds]);
+
 
   const [loading, setLoading] = useState({
     countries: true,
@@ -144,16 +173,39 @@ export function MatchesByLeague() {
     setLoading(prev => ({ ...prev, matches: false }));
   }, [selectedLeague, selectedSeason]);
 
+   const handlePinToggle = useCallback((matchId: string) => {
+    setPinnedMatchIds(prev => 
+      prev.includes(matchId) 
+        ? prev.filter(id => id !== matchId)
+        : [...prev, matchId]
+    );
+  }, []);
+
   const hasAnyFavorite = useMemo(() => {
     return !loading.matches && matches.some(match => match.favorite);
   }, [matches, loading.matches]);
 
-  const filteredMatches = useMemo(() => {
-    if (showOnlyFavorites) {
-      return matches.filter(match => match.favorite);
-    }
-    return matches;
-  }, [matches, showOnlyFavorites]);
+  const { pinned, unpinned } = useMemo(() => {
+    const pinnedSet = new Set(pinnedMatchIds);
+    const pinned: any[] = [];
+    const unpinned: any[] = [];
+
+    const sourceMatches = showOnlyFavorites ? matches.filter(match => match.favorite) : matches;
+
+    sourceMatches.forEach(match => {
+      if (pinnedSet.has(match.id)) {
+        pinned.push(match);
+      } else {
+        unpinned.push(match);
+      }
+    });
+
+    const allMatches = [...matches];
+    const pinnedFromAll = allMatches.filter(m => pinnedSet.has(m.id));
+
+    return { pinned: pinnedFromAll, unpinned };
+  }, [matches, pinnedMatchIds, showOnlyFavorites]);
+
 
   return (
     <Card>
@@ -252,7 +304,14 @@ export function MatchesByLeague() {
               ))}
             </div>
         ) : selectedRound ? (
-          <MatchList matches={filteredMatches} error={error} loading={loading.matches} />
+          <MatchList 
+            matches={unpinned}
+            pinnedMatches={pinned}
+            error={error} 
+            loading={loading.matches}
+            onPinToggle={handlePinToggle}
+            pinnedMatchIds={pinnedMatchIds}
+          />
         ) : (
           <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">
             <p>Selecciona los filtros para buscar encuentros.</p>
