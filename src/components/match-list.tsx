@@ -97,20 +97,22 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const isFavorite = isFavoriteTeam1 || isFavoriteTeam2;
   const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : match.team2?.name;
 
-  const handleSheetOpen = useCallback(async (isOpen: boolean) => {
-    setIsSheetOpen(isOpen);
-    if (isOpen && !matchDetails) {
+  const handleOpenSheet = useCallback(async () => {
+    if (!isSheetOpen) {
+      setIsSheetOpen(true);
+      if (!matchDetails) {
         setDetailsLoading(true);
         setDetailsError(null);
         const result = await getMatchStats(match);
         if (result.error) {
-            setDetailsError(result.error);
+          setDetailsError(result.error);
         } else {
-            setMatchDetails(result.data);
+          setMatchDetails(result.data);
         }
         setDetailsLoading(false);
+      }
     }
-  }, [match, matchDetails]);
+  }, [isSheetOpen, match, matchDetails]);
 
   const BlinkingLight = () => (
     <div className="relative flex h-3 w-3 mx-2">
@@ -125,36 +127,34 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }
 
   return (
-    <Sheet open={isSheetOpen} onOpenChange={handleSheetOpen}>
-      <SheetTrigger asChild>
-         <div className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
-            {onPinToggle && (
-              <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center">
-                <div className={cn(
-                  "h-5 w-5 rounded-full border-2 border-foreground/50 transition-colors",
-                  isPinned && "bg-foreground border-foreground"
-                )}></div>
-              </button>
-            )}
-            <div className="w-16 text-muted-foreground text-center text-sm">{timeDisplay}</div>
-            <div className="flex-grow space-y-1 text-sm">
-                <div className="flex justify-between items-center">
-                    <div className="flex-grow text-left flex items-center">
-                        <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
-                        {isFavoriteTeam1 && <BlinkingLight />}
-                    </div>
-                    <span className="font-bold w-6 text-center">{match.team1_score ?? '-'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                    <div className="flex-grow text-left flex items-center">
-                        <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
-                        {isFavoriteTeam2 && <BlinkingLight />}
-                    </div>
-                    <span className="font-bold w-6 text-center">{match.team2_score ?? '-'}</span>
-                </div>
-            </div>
+    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <div onClick={handleOpenSheet} className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
+          {onPinToggle && (
+            <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center">
+              <div className={cn(
+                "h-5 w-5 rounded-full border-2 border-foreground/50 transition-colors",
+                isPinned && "bg-foreground border-foreground"
+              )}></div>
+            </button>
+          )}
+          <div className="w-16 text-muted-foreground text-center text-sm">{timeDisplay}</div>
+          <div className="flex-grow space-y-1 text-sm">
+              <div className="flex justify-between items-center">
+                  <div className="flex-grow text-left flex items-center">
+                      <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
+                      {isFavoriteTeam1 && <BlinkingLight />}
+                  </div>
+                  <span className="font-bold w-6 text-center">{match.team1_score ?? '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                  <div className="flex-grow text-left flex items-center">
+                      <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
+                      {isFavoriteTeam2 && <BlinkingLight />}
+                  </div>
+                  <span className="font-bold w-6 text-center">{match.team2_score ?? '-'}</span>
+              </div>
           </div>
-      </SheetTrigger>
+        </div>
       <SheetContent className="w-full max-w-[90vw] sm:max-w-xl overflow-y-auto">
         <SheetHeader className="text-left pb-4 border-b">
           <SheetTitle>{match.team1?.name} vs {match.team2?.name}</SheetTitle>
