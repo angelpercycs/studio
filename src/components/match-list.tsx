@@ -98,6 +98,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : match.team2?.name;
 
   const handleOpenSheet = useCallback(async () => {
+    setIsSheetOpen(true);
     if (!matchDetails) {
       setDetailsLoading(true);
       setDetailsError(null);
@@ -124,101 +125,100 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }
 
   return (
-    <Sheet open={isSheetOpen} onOpenChange={(open) => {
-      if(open) handleOpenSheet();
-      setIsSheetOpen(open);
-    }}>
-        <div onClick={() => setIsSheetOpen(true)} className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
-          {onPinToggle && (
-            <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center">
-              <div className={cn(
-                "h-5 w-5 rounded-full border-2 border-foreground/50 transition-colors",
-                isPinned && "bg-foreground border-foreground"
-              )}></div>
-            </button>
-          )}
-          <div className="w-16 text-muted-foreground text-center text-sm">{timeDisplay}</div>
-          <div className="flex-grow space-y-1 text-sm">
-              <div className="flex justify-between items-center">
-                  <div className="flex-grow text-left flex items-center">
-                      <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
-                      {isFavoriteTeam1 && <BlinkingLight />}
-                  </div>
-                  <span className="font-bold w-6 text-center">{match.team1_score ?? '-'}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                  <div className="flex-grow text-left flex items-center">
-                      <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
-                      {isFavoriteTeam2 && <BlinkingLight />}
-                  </div>
-                  <span className="font-bold w-6 text-center">{match.team2_score ?? '-'}</span>
-              </div>
-          </div>
+    <>
+      <div onClick={handleOpenSheet} className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
+        {onPinToggle && (
+          <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center">
+            <div className={cn(
+              "h-4 w-4 rounded-full border-2 border-foreground/50 transition-colors",
+              isPinned && "bg-foreground border-foreground"
+            )}></div>
+          </button>
+        )}
+        <div className="w-16 text-muted-foreground text-center text-sm">{timeDisplay}</div>
+        <div className="flex-grow space-y-1 text-sm">
+            <div className="flex justify-between items-center">
+                <div className="flex-grow text-left flex items-center">
+                    <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
+                    {isFavoriteTeam1 && <BlinkingLight />}
+                </div>
+                <span className="font-bold w-6 text-center">{match.team1_score ?? '-'}</span>
+            </div>
+            <div className="flex justify-between items-center">
+                <div className="flex-grow text-left flex items-center">
+                    <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
+                    {isFavoriteTeam2 && <BlinkingLight />}
+                </div>
+                <span className="font-bold w-6 text-center">{match.team2_score ?? '-'}</span>
+            </div>
         </div>
-      <SheetContent className="w-full max-w-[90vw] sm:max-w-xl overflow-y-auto">
-        <SheetHeader className="text-left pb-4 border-b">
-          <SheetTitle>{match.team1?.name} vs {match.team2?.name}</SheetTitle>
-          <SheetDescription>
-              {match.league?.name}
-              <br />
-              <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
-              <br />
-              <span className="text-xs">Resultados de liga, dentro de los 90 minutos reglamentarios.</span>
-          </SheetDescription>
-           {isFavorite && (
-              <div className="mt-4 space-y-2 text-left">
-                  <p className="text-sm font-bold text-primary">
-                    Favorito a ganar: {favoriteTeamName}
-                  </p>
-                  <Progress value={50} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
-                  <p className="text-xs font-semibold text-primary">Predicción con 50% de acierto</p>
+      </div>
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent className="w-full max-w-[90vw] sm:max-w-xl overflow-y-auto">
+          <SheetHeader className="text-left pb-4 border-b">
+            <SheetTitle>{match.team1?.name} vs {match.team2?.name}</SheetTitle>
+            <SheetDescription>
+                {match.league?.name}
+                <br />
+                <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
+                <br />
+                <span className="text-xs">Resultados de liga, dentro de los 90 minutos reglamentarios.</span>
+            </SheetDescription>
+             {isFavorite && (
+                <div className="mt-4 space-y-2 text-left">
+                    <p className="text-sm font-bold text-primary">
+                      Favorito a ganar: {favoriteTeamName}
+                    </p>
+                    <Progress value={50} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
+                    <p className="text-xs font-semibold text-primary">Predicción con 50% de acierto</p>
+                </div>
+              )}
+          </SheetHeader>
+          {detailsLoading ? (
+              <div className="flex justify-center items-center h-64">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            )}
-        </SheetHeader>
-        {detailsLoading ? (
-            <div className="flex justify-center items-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        ) : detailsError ? (
-            <Alert variant="destructive" className="m-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{detailsError}</AlertDescription>
-            </Alert>
-        ) : matchDetails ? (
-            <div className="p-4">
-                <StandingsTable 
-                    title="Clasificación General"
-                    homeStats={matchDetails.team1_standings}
-                    awayStats={matchDetails.team2_standings}
-                    homeName={match.team1?.name}
-                    awayName={match.team2?.name}
-                />
-                <StandingsTable 
-                    title="Clasificación Local/Visitante"
-                    homeStats={matchDetails.team1_standings?.home}
-                    awayStats={matchDetails.team2_standings?.away}
-                    homeName={match.team1?.name}
-                    awayName={match.team2?.name}
-                />
-                <StandingsTable 
-                    title="Últimos 3 encuentros (General)"
-                    homeStats={matchDetails.team1_last_3}
-                    awayStats={matchDetails.team2_last_3}
-                    homeName={match.team1?.name}
-                    awayName={match.team2?.name}
-                />
-                <StandingsTable 
-                    title="Últimos 3 encuentros (Local/Visitante)"
-                    homeStats={matchDetails.team1_last_3_home_away}
-                    awayStats={matchDetails.team2_last_3_home_away}
-                    homeName={match.team1?.name}
-                    awayName={match.team2?.name}
-                />
-            </div>
-        ) : null}
-      </SheetContent>
-    </Sheet>
+          ) : detailsError ? (
+              <Alert variant="destructive" className="m-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{detailsError}</AlertDescription>
+              </Alert>
+          ) : matchDetails ? (
+              <div className="p-4">
+                  <StandingsTable 
+                      title="Clasificación General"
+                      homeStats={matchDetails.team1_standings}
+                      awayStats={matchDetails.team2_standings}
+                      homeName={match.team1?.name}
+                      awayName={match.team2?.name}
+                  />
+                  <StandingsTable 
+                      title="Clasificación Local/Visitante"
+                      homeStats={matchDetails.team1_standings?.home}
+                      awayStats={matchDetails.team2_standings?.away}
+                      homeName={match.team1?.name}
+                      awayName={match.team2?.name}
+                  />
+                  <StandingsTable 
+                      title="Últimos 3 encuentros (General)"
+                      homeStats={matchDetails.team1_last_3}
+                      awayStats={matchDetails.team2_last_3}
+                      homeName={match.team1?.name}
+                      awayName={match.team2?.name}
+                  />
+                  <StandingsTable 
+                      title="Últimos 3 encuentros (Local/Visitante)"
+                      homeStats={matchDetails.team1_last_3_home_away}
+                      awayStats={matchDetails.team2_last_3_home_away}
+                      homeName={match.team1?.name}
+                      awayName={match.team2?.name}
+                  />
+              </div>
+          ) : null}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
 
