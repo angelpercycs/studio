@@ -254,7 +254,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
   
   const PinnedMatchesComponent = () => (
     pinnedMatches && pinnedMatches.length > 0 && (
-       <Card className="bg-muted/30">
+       <Card className="bg-primary/10">
           <CardContent className="p-0">
             <div className="p-4 font-bold flex items-center gap-2 border-b">
               <Pin className="h-5 w-5" />
