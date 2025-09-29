@@ -14,21 +14,21 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const PINNED_MATCHES_STORAGE_KEY = 'pinnedDateMatches';
 
-function getInitialPinnedMatches(): string[] {
-  if (typeof window === 'undefined') return [];
+function getInitialPinnedMatches(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
   const saved = localStorage.getItem(PINNED_MATCHES_STORAGE_KEY);
   if (saved) {
     try {
       const { ids, expiry } = JSON.parse(saved);
       if (new Date().getTime() < expiry) {
-        return ids;
+        return new Set(ids);
       }
        localStorage.removeItem(PINNED_MATCHES_STORAGE_KEY);
     } catch (e) {
       console.error("Error parsing pinned matches", e);
     }
   }
-  return [];
+  return new Set();
 };
 
 
@@ -38,12 +38,12 @@ export function MatchesByDate() {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
-  const [pinnedMatchIds, setPinnedMatchIds] = useState<string[]>(getInitialPinnedMatches);
+  const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
         const expiry = new Date().getTime() + 2 * 24 * 60 * 60 * 1000;
-        const dataToSave = JSON.stringify({ ids: pinnedMatchIds, expiry });
+        const dataToSave = JSON.stringify({ ids: Array.from(pinnedMatchIds), expiry });
         localStorage.setItem(PINNED_MATCHES_STORAGE_KEY, dataToSave);
     }
   }, [pinnedMatchIds]);
@@ -76,11 +76,15 @@ export function MatchesByDate() {
   }, [selectedDate, fetchMatches]);
 
   const handlePinToggle = useCallback((matchId: string) => {
-    setPinnedMatchIds(prev => 
-      prev.includes(matchId) 
-        ? prev.filter(id => id !== matchId)
-        : [...prev, matchId]
-    );
+    setPinnedMatchIds(prev => {
+        const newPinned = new Set(prev);
+        if (newPinned.has(matchId)) {
+            newPinned.delete(matchId);
+        } else {
+            newPinned.add(matchId);
+        }
+        return newPinned;
+    });
   }, []);
 
   const hasAnyFavorite = useMemo(() => {
@@ -164,7 +168,7 @@ export function MatchesByDate() {
             error={error} 
             loading={loading}
             onPinToggle={handlePinToggle}
-            pinnedMatchIds={pinnedMatchIds}
+            pinnedMatchIds={Array.from(pinnedMatchIds)}
         />
       </CardContent>
     </Card>
