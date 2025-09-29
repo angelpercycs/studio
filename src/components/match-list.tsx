@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -128,7 +128,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
     <>
       <div onClick={handleOpenSheet} className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
         {onPinToggle && (
-          <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center">
+           <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center -ml-2">
             <div className={cn(
               "h-4 w-4 rounded-full border-2 border-foreground/50 transition-colors",
               isPinned && "bg-foreground border-foreground"
@@ -223,7 +223,18 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
 }
 
 
-export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: string[] }) => {
+export const MatchList = ({ matches, pinnedMatches: pinnedMatchIds, error, loading, onPinToggle }: { matches: any[], pinnedMatches?: Set<string>, error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void }) => {
+
+  const { pinned, regular } = useMemo(() => {
+    return matches.reduce((acc, match) => {
+        if (pinnedMatchIds?.has(match.id)) {
+            acc.pinned.push(match);
+        } else {
+            acc.regular.push(match);
+        }
+        return acc;
+    }, { pinned: [] as any[], regular: [] as any[] });
+  }, [matches, pinnedMatchIds]);
 
   if (loading) {
     return <MatchDaySkeleton />;
@@ -245,7 +256,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     )
   }
 
-  if ((!matches || matches.length === 0) && (!pinnedMatches || pinnedMatches.length === 0)) {
+  if ((!matches || matches.length === 0) && (!pinnedMatchIds || pinnedMatchIds.size === 0)) {
     return (
       <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">
         <p>No hay encuentros para mostrar para esta fecha.</p>
@@ -253,7 +264,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     );
   }
 
-  const groupedByLeague = matches.reduce((acc, match) => {
+  const groupedByLeague = regular.reduce((acc, match) => {
     const countryName = match.league?.countries?.name || 'Unknown Country';
     const leagueName = match.league?.name || 'Unknown League';
     const groupKey = `${countryName}-${leagueName}`;
@@ -279,21 +290,21 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
   });
   
   const PinnedMatchesComponent = () => (
-    pinnedMatches && pinnedMatches.length > 0 && (
-       <Card>
+    pinned && pinned.length > 0 && (
+       <Card className="bg-muted/30">
           <CardContent className="p-0">
-            <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
+            <div className="p-4 font-bold flex items-center gap-2 border-b">
               <Pin className="h-5 w-5" />
               Partidos Fijados
             </div>
             <div>
               <div className="divide-y">
-                {pinnedMatches.map((match: any) => 
+                {pinned.map((match: any) => 
                   <MatchRow 
                     key={match.id} 
                     match={match} 
                     onPinToggle={onPinToggle} 
-                    isPinned={pinnedMatchIds?.includes(match.id)}
+                    isPinned={pinnedMatchIds?.has(match.id)}
                   />)}
               </div>
             </div>
@@ -307,6 +318,11 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     <div className="w-full space-y-4 mt-4">
       <PinnedMatchesComponent />
       {sortedLeagues.map(([groupKey, { matches: leagueMatches, country, leagueName, flag }]) => {
+        const leagueHasPinnedMatch = leagueMatches.some(m => pinnedMatchIds?.has(m.id));
+        if (leagueHasPinnedMatch && leagueMatches.every(m => pinnedMatchIds?.has(m.id))) {
+            return null;
+        }
+
         return (
           <Card key={groupKey}>
             <CardContent className="p-0">
@@ -321,7 +337,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
                         key={match.id} 
                         match={match}
                         onPinToggle={onPinToggle}
-                        isPinned={pinnedMatchIds?.includes(match.id)}
+                        isPinned={pinnedMatchIds?.has(match.id)}
                     />)}
                 </div>
               </div>
