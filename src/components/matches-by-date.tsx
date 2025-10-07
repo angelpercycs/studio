@@ -87,8 +87,9 @@ export function MatchesByDate() {
     });
   }, []);
 
-  const hasAnyFavorite = useMemo(() => {
-    return !loading && matches.some(match => match.favorite);
+  const favoriteMatchesCount = useMemo(() => {
+    if (loading) return 0;
+    return matches.filter(match => match.favorite).length;
   }, [matches, loading]);
 
   const { pinned, unpinned } = useMemo(() => {
@@ -98,18 +99,16 @@ export function MatchesByDate() {
 
     const sourceMatches = showOnlyFavorites ? matches.filter(match => match.favorite) : matches;
 
-    sourceMatches.forEach(match => {
+    matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
         pinned.push(match);
-      } else {
-        unpinned.push(match);
       }
     });
 
-    const allMatches = [...matches];
-    const pinnedFromAll = allMatches.filter(m => pinnedSet.has(m.id));
+    const unpinnedSource = sourceMatches.filter(m => !pinnedSet.has(m.id));
+    unpinned.push(...unpinnedSource);
 
-    return { pinned: pinnedFromAll, unpinned };
+    return { pinned, unpinned };
   }, [matches, pinnedMatchIds, showOnlyFavorites]);
 
 
@@ -146,7 +145,7 @@ export function MatchesByDate() {
             </PopoverContent>
           </Popover>
         </div>
-        {hasAnyFavorite && (
+        {favoriteMatchesCount > 0 && (
           <Alert variant="destructive" className="mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -154,7 +153,7 @@ export function MatchesByDate() {
                     <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
                     <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
                 </div>
-                <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con favorito disponibles!</AlertTitle>
+                <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con favorito disponibles! ({favoriteMatchesCount})</AlertTitle>
               </div>
               <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
                 {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
