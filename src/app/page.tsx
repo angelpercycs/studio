@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <main className="container mx-auto flex-grow px-4 py-8 md:py-12">
-        <header className="mb-8 flex items-center gap-4">
+        <header className="mb-8 flex flex-col items-center text-center gap-4">
           <Image
             src="/icon.svg"
             alt="App Icon"
@@ -20,19 +20,20 @@ export default function Home() {
             className="baby-blue-icon"
           />
           <div>
-            <h1 className="text-xl font-bold tracking-tight">
-              Fútbol Stats Zone
+            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+              Fútbol Stats Zone - Pronósticos de Fútbol
             </h1>
-            <p className="text-sm text-muted-foreground">Pronósticos de Fútbol</p>
           </div>
         </header>
 
-        <div className="mb-4 flex w-full justify-center">
+        <div className="mb-8 flex w-full justify-center">
           <div className="w-full max-w-4xl">
             <AdBanner />
           </div>
         </div>
         
+        <h2 className="text-xl font-semibold mb-4 text-center">Encuentros y Estadísticas</h2>
+
         <Tabs defaultValue="daily" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="daily">
