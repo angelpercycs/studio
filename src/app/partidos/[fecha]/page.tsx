@@ -5,6 +5,8 @@ import { addDays, subDays, format } from "date-fns";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 export default async function Page({ params }: { params: { fecha: string } }) {
   const { fecha } = params;
 
