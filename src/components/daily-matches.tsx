@@ -2,10 +2,8 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getMatchesByDate } from "@/app/actions/getMatches";
 import { MatchList } from "@/components/match-list";
-import { subDays, addDays, format } from 'date-fns';
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
@@ -28,10 +26,10 @@ function getInitialPinnedMatches(): Set<string> {
   return new Set();
 };
 
-export function DailyMatches() {
-  const [matches, setMatches] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function DailyMatches({ initialMatches, error: initialError }: { initialMatches: any[], error: string | null }) {
+  const [matches, setMatches] = useState<any[]>(initialMatches);
+  const [loading, setLoading] = useState(false); // No loading initially as data is passed
+  const [error, setError] = useState<string | null>(initialError);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches);
   
@@ -42,39 +40,6 @@ export function DailyMatches() {
         localStorage.setItem(PINNED_MATCHES_STORAGE_KEY, dataToSave);
     }
   }, [pinnedMatchIds]);
-
-  const fetchMatches = useCallback(async (tab: string) => {
-    setLoading(true);
-    setError(null);
-    setMatches([]);
-    setShowOnlyFavorites(false); 
-
-    let date;
-    if (tab === 'yesterday') date = subDays(new Date(), 1);
-    else if (tab === 'tomorrow') date = addDays(new Date(), 1);
-    else date = new Date();
-
-    const dateString = format(date, 'yyyy-MM-dd');
-
-    const result = await getMatchesByDate(dateString);
-    
-    if (result && result.error) {
-      setError(result.error);
-    } else if (result && result.data) {
-      setMatches(result.data);
-    } else {
-      setError("No se pudieron cargar los partidos. Por favor, inténtelo de nuevo más tarde.");
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchMatches('today');
-  }, [fetchMatches]);
-  
-  const handleTabChange = (value: string) => {
-      fetchMatches(value);
-  }
   
   const handlePinToggle = useCallback((matchId: string) => {
     setPinnedMatchIds(prev => {
@@ -115,12 +80,6 @@ export function DailyMatches() {
   return (
     <Card>
       <CardContent className="pt-6">
-        <Tabs defaultValue="today" className="w-full" onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="yesterday">Ayer</TabsTrigger>
-            <TabsTrigger value="today">Hoy</TabsTrigger>
-            <TabsTrigger value="tomorrow">Mañana</TabsTrigger>
-          </TabsList>
           <div className="mt-4">
             {favoriteMatchesCount > 0 && (
               <Alert variant="destructive" className="mb-4">
@@ -147,7 +106,6 @@ export function DailyMatches() {
                 pinnedMatchIds={Array.from(pinnedMatchIds)}
             />
           </div>
-        </Tabs>
       </CardContent>
     </Card>
   );
