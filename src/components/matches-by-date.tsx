@@ -167,7 +167,7 @@ export function MatchesByDate() {
             error={error} 
             loading={loading}
             onPinToggle={handlePinToggle}
-            pinnedMatchIds={Array.from(pinnedMatchIds)}
+            pinnedMatchIds={pinnedMatchIds}
         />
       </CardContent>
     </Card>

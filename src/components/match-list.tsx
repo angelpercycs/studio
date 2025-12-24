@@ -223,7 +223,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
 }
 
 
-export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: string[] }) => {
+export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string> }) => {
   if (loading) {
     return <MatchDaySkeleton />;
   }
@@ -267,7 +267,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
                     key={match.id} 
                     match={match} 
                     onPinToggle={onPinToggle} 
-                    isPinned={pinnedMatchIds?.includes(match.id)}
+                    isPinned={pinnedMatchIds?.has(match.id)}
                   />)}
               </div>
             </div>
@@ -320,7 +320,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
                         key={match.id} 
                         match={match}
                         onPinToggle={onPinToggle}
-                        isPinned={pinnedMatchIds?.includes(match.id)}
+                        isPinned={pinnedMatchIds?.has(match.id)}
                     />)}
                 </div>
               </div>

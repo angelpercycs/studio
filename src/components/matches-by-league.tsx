@@ -313,7 +313,7 @@ export function MatchesByLeague() {
             error={error} 
             loading={loading.matches}
             onPinToggle={handlePinToggle}
-            pinnedMatchIds={Array.from(pinnedMatchIds)}
+            pinnedMatchIds={pinnedMatchIds}
           />
         ) : (
           <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">

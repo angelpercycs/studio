@@ -103,7 +103,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
                 error={error} 
                 loading={loading}
                 onPinToggle={handlePinToggle}
-                pinnedMatchIds={Array.from(pinnedMatchIds)}
+                pinnedMatchIds={pinnedMatchIds}
             />
           </div>
       </CardContent>
