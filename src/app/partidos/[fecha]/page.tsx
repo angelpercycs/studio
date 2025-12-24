@@ -8,13 +8,13 @@ import { notFound } from "next/navigation";
 export default async function Page({ params }: { params: { fecha: string } }) {
   const { fecha } = params;
 
-  if (!["hoy", "ayer", "mañana"].includes(fecha)) {
+  if (!["hoy", "ayer", "manana"].includes(fecha)) {
     notFound();
   }
 
   let date;
   if (fecha === "ayer") date = subDays(new Date(), 1);
-  else if (fecha === "mañana") date = addDays(new Date(), 1);
+  else if (fecha === "manana") date = addDays(new Date(), 1);
   else date = new Date();
 
   const dateString = format(date, "yyyy-MM-dd");
@@ -23,7 +23,7 @@ export default async function Page({ params }: { params: { fecha: string } }) {
   const tabMapping: { [key: string]: string } = {
     hoy: 'today',
     ayer: 'yesterday',
-    mañana: 'tomorrow'
+    manana: 'tomorrow'
   }
 
   return (
@@ -36,7 +36,7 @@ export default async function Page({ params }: { params: { fecha: string } }) {
                  <Link href="/partidos/hoy" className="flex-1">
                     <TabsTrigger value="today" className="w-full">Hoy</TabsTrigger>
                 </Link>
-                 <Link href="/partidos/mañana" className="flex-1">
+                 <Link href="/partidos/manana" className="flex-1">
                     <TabsTrigger value="tomorrow" className="w-full">Mañana</TabsTrigger>
                 </Link>
             </TabsList>
@@ -47,5 +47,5 @@ export default async function Page({ params }: { params: { fecha: string } }) {
 }
 
 export function generateStaticParams() {
-  return [{ fecha: 'hoy' }, { fecha: 'ayer' }, { fecha: 'mañana' }];
+  return [{ fecha: 'hoy' }, { fecha: 'ayer' }, { fecha: 'manana' }];
 }
