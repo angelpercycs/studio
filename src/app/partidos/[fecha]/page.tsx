@@ -1,17 +1,17 @@
 import { getMatchesByDate } from "@/app/actions/getMatches";
-import { DailyMatches } from "@/components/daily-matches";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PartidosClientPage } from "@/components/partidos-client-page";
 import { addDays, subDays, format } from "date-fns";
-import Link from "next/link";
-import { notFound } from "next/navigation";
 
-export const revalidate = 3600; // Revalidate every hour
+export async function generateStaticParams() {
+  return [{ fecha: 'hoy' }, { fecha: 'ayer' }, { fecha: 'manana' }];
+}
 
 export default async function Page({ params }: { params: { fecha: string } }) {
   const { fecha } = params;
-
+  
   if (!["hoy", "ayer", "manana"].includes(fecha)) {
-    notFound();
+    // This should not happen with generateStaticParams, but as a fallback.
+    return { notFound: true };
   }
 
   let date;
@@ -22,32 +22,11 @@ export default async function Page({ params }: { params: { fecha: string } }) {
   const dateString = format(date, "yyyy-MM-dd");
   const { data: initialMatches, error } = await getMatchesByDate(dateString);
 
-  const tabMapping: { [key: string]: string } = {
-    hoy: 'today',
-    ayer: 'yesterday',
-    manana: 'tomorrow'
-  }
-
   return (
-    <div>
-        <Tabs defaultValue={tabMapping[fecha]} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-                <Link href="/partidos/ayer" className="flex-1">
-                    <TabsTrigger value="yesterday" className="w-full">Ayer</TabsTrigger>
-                </Link>
-                 <Link href="/partidos/hoy" className="flex-1">
-                    <TabsTrigger value="today" className="w-full">Hoy</TabsTrigger>
-                </Link>
-                 <Link href="/partidos/manana" className="flex-1">
-                    <TabsTrigger value="tomorrow" className="w-full">Mañana</TabsTrigger>
-                </Link>
-            </TabsList>
-        </Tabs>
-      <DailyMatches initialMatches={initialMatches || []} error={error} />
-    </div>
+    <PartidosClientPage
+      initialMatches={initialMatches || []}
+      error={error}
+      fecha={fecha}
+    />
   );
-}
-
-export function generateStaticParams() {
-  return [{ fecha: 'hoy' }, { fecha: 'ayer' }, { fecha: 'manana' }];
 }
