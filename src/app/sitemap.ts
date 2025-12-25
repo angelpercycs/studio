@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.fszscore.com';
+  const baseUrl = 'https://fszscore.com';
 
   const routes = [
     { url: '/partidos/hoy', changeFrequency: 'hourly', priority: 1.0 },
