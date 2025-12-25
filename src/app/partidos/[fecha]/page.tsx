@@ -4,16 +4,25 @@ import { addDays, subDays, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { type Metadata } from 'next'
 
-export async function generateStaticParams() {
-  return [{ fecha: 'hoy' }, { fecha: 'ayer' }, { fecha: 'manana' }];
-}
-
 function getDateFromFecha(fecha: string): Date {
-  const nowInUTC = new Date();
-  const peruTime = new Date(nowInUTC.getTime() - (5 * 60 * 60 * 1000));
+  const now = new Date();
+  const peruOffset = -5 * 60 * 60 * 1000; // UTC-5 en milisegundos
+  const peruTime = new Date(now.getTime() + peruOffset);
   
   if (fecha === "ayer") return subDays(peruTime, 1);
   if (fecha === "manana") return addDays(peruTime, 1);
+  
+  // Para 'hoy', simplemente usamos la fecha ajustada a Perú
+  if (fecha === 'hoy') return peruTime;
+
+  // Si es una fecha específica como '2023-12-25', la parseamos
+  // Esto asume que la fecha viene sin zona horaria, y la tratamos como tal.
+  const parsedDate = parseISO(fecha);
+  if (!isNaN(parsedDate.getTime())) {
+    return parsedDate;
+  }
+
+  // Fallback a la hora de Perú si nada coincide
   return peruTime;
 }
 
@@ -39,10 +48,7 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
 export default async function Page({ params }: { params: { fecha: string } }) {
   const { fecha } = params;
   
-  if (!["hoy", "ayer", "manana"].includes(fecha)) {
-    return { notFound: true };
-  }
-
+  // Ya no restringimos a solo hoy, ayer, mañana
   const date = getDateFromFecha(fecha);
   const dateString = format(date, "yyyy-MM-dd");
   const { data: initialMatches, error } = await getMatchesByDate(dateString);
