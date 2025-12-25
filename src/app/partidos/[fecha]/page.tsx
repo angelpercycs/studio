@@ -9,9 +9,13 @@ export async function generateStaticParams() {
 }
 
 function getDateFromFecha(fecha: string): Date {
-  if (fecha === "ayer") return subDays(new Date(), 1);
-  if (fecha === "manana") return addDays(new Date(), 1);
-  return new Date();
+  const now = new Date();
+  const peruTimeOffset = -5 * 60; // UTC-5 en minutos
+  const localTime = new Date(now.getTime() + (now.getTimezoneOffset() + peruTimeOffset) * 60000);
+  
+  if (fecha === "ayer") return subDays(localTime, 1);
+  if (fecha === "manana") return addDays(localTime, 1);
+  return localTime;
 }
 
 export async function generateMetadata({ params }: { params: { fecha: string } }): Promise<Metadata> {
