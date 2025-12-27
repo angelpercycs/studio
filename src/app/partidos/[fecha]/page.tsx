@@ -4,22 +4,22 @@ import { addDays, subDays, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { type Metadata } from 'next'
 
+export const revalidate = 1800; // Revalidate every 30 minutes
+
 function getDateFromFecha(fecha: string): Date {
-  const now = new Date();
-  const peruOffset = -5 * 60 * 60 * 1000;
-  const peruTime = new Date(new Date(now).getTime() + peruOffset);
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+
+  if (fecha === "ayer") return subDays(now, 1);
+  if (fecha === "manana") return addDays(now, 1);
   
-  if (fecha === "ayer") return subDays(peruTime, 1);
-  if (fecha === "manana") return addDays(peruTime, 1);
-  
-  if (fecha === 'hoy') return peruTime;
+  if (fecha === 'hoy') return now;
 
   const parsedDate = parseISO(fecha);
   if (!isNaN(parsedDate.getTime())) {
     return parsedDate;
   }
 
-  return peruTime;
+  return now;
 }
 
 export async function generateMetadata({ params }: { params: { fecha: string } }): Promise<Metadata> {
