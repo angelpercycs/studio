@@ -31,10 +31,10 @@ const nextConfig: NextConfig = {
         has: [
           {
             type: 'host',
-            value: 'www.fszscore.com',
+            value: 'fszscore.com',
           },
         ],
-        destination: 'https://fszscore.com/:path*',
+        destination: 'https://www.fszscore.com/:path*',
         permanent: true,
       },
     ]
