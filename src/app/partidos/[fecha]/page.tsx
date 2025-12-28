@@ -3,23 +3,29 @@ import { PartidosClientPage } from "@/components/partidos-client-page";
 import { addDays, subDays, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { type Metadata } from 'next'
+import { redirect } from 'next/navigation';
+
 
 export const revalidate = 1800; // Revalidate every 30 minutes
 
-function getDateFromFecha(fecha: string): Date {
+function getDateFromFecha(fecha: string): Date | null {
   const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
 
   if (fecha === "ayer") return subDays(now, 1);
   if (fecha === "manana") return addDays(now, 1);
   
-  if (fecha === 'hoy') return now;
+  if (fecha === 'hoy') {
+    // This case should be handled by the root page.tsx, redirect just in case.
+    return null;
+  }
 
   const parsedDate = parseISO(fecha);
   if (!isNaN(parsedDate.getTime())) {
     return parsedDate;
   }
 
-  return now;
+  // If the date is invalid, we will redirect
+  return null;
 }
 
 export async function generateMetadata({ params }: { params: { fecha: string } }): Promise<Metadata> {
@@ -28,6 +34,14 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
   if(fecha === 'manana') fechaText = 'mañana';
 
   const date = getDateFromFecha(fecha);
+  
+  if (!date) {
+    return {
+      title: 'Fecha no válida - Fútbol Stats Zone',
+      description: 'La fecha solicitada no es válida.',
+    }
+  }
+
   const formattedDate = format(date, "d 'de' MMMM", { locale: es });
   
   const fechaTitlePart = fechaText.charAt(0).toUpperCase() + fechaText.slice(1);
@@ -44,7 +58,16 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
 export default async function Page({ params }: { params: { fecha: string } }) {
   const { fecha } = params;
   
+  if (fecha === 'hoy') {
+    redirect('/');
+  }
+
   const date = getDateFromFecha(fecha);
+  
+  if (!date) {
+    redirect('/');
+  }
+
   const dateString = format(date, "yyyy-MM-dd");
   const { data: initialMatches, error } = await getMatchesByDate(dateString);
 
@@ -109,3 +132,4 @@ export default async function Page({ params }: { params: { fecha: string } }) {
     </>
   );
 }
+

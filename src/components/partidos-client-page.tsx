@@ -7,24 +7,20 @@ import { usePathname } from "next/navigation";
 
 export function PartidosClientPage({ initialMatches, error, fecha }: { initialMatches: any[], error: string | null, fecha: string }) {
   
-  const tabMapping: { [key: string]: string } = {
-    hoy: 'today',
-    ayer: 'yesterday',
-    manana: 'tomorrow'
-  }
+  const tabValue = fecha === 'hoy' ? 'today' : fecha;
 
   return (
     <div>
-        <Tabs defaultValue={tabMapping[fecha]} className="w-full">
+        <Tabs defaultValue={tabValue} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
                 <Link href="/partidos/ayer" className="flex-1">
-                    <TabsTrigger value="yesterday" className="w-full">Ayer</TabsTrigger>
+                    <TabsTrigger value="ayer" className="w-full">Ayer</TabsTrigger>
                 </Link>
-                 <Link href="/partidos/hoy" className="flex-1">
+                 <Link href="/" className="flex-1">
                     <TabsTrigger value="today" className="w-full">Hoy</TabsTrigger>
                 </Link>
                  <Link href="/partidos/manana" className="flex-1">
-                    <TabsTrigger value="tomorrow" className="w-full">Mañana</TabsTrigger>
+                    <TabsTrigger value="manana" className="w-full">Mañana</TabsTrigger>
                 </Link>
             </TabsList>
         </Tabs>

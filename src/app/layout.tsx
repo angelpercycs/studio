@@ -35,18 +35,20 @@ export default function RootLayout({
          <div className="flex min-h-screen flex-col bg-background text-foreground">
             <main className="container mx-auto flex-grow px-4 py-8 md:py-12">
               <header className="mb-8 flex flex-col items-center text-center gap-4">
-                <Image
-                  src="/icon.svg"
-                  alt="App Icon"
-                  width={48}
-                  height={48}
-                  className="baby-blue-icon"
-                />
-                <div>
-                  <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-                    Fútbol Stats Zone - Pronósticos de Fútbol
-                  </h1>
-                </div>
+                <Link href="/" className="flex flex-col items-center gap-2">
+                  <Image
+                    src="/icon.svg"
+                    alt="App Icon"
+                    width={48}
+                    height={48}
+                    className="baby-blue-icon"
+                  />
+                  <div>
+                    <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+                      Fútbol Stats Zone - Pronósticos de Fútbol
+                    </h1>
+                  </div>
+                </Link>
               </header>
 
               <div className="mb-8 flex w-full justify-center">
@@ -59,7 +61,7 @@ export default function RootLayout({
 
               <Tabs defaultValue="daily" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
-                  <Link href="/partidos/hoy" className='flex-1'>
+                  <Link href="/" className='flex-1'>
                     <TabsTrigger value="daily" className='w-full'>
                       <CalendarDays className="mr-2 h-4 w-4 text-primary" />
                       Encuentros del día

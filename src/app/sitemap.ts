@@ -5,7 +5,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Define las rutas principales del sitio
   const routes = [
-    { url: '/partidos/hoy', changeFrequency: 'hourly', priority: 1.0 },
+    { url: '/', changeFrequency: 'hourly', priority: 1.0 },
     { url: '/partidos/ayer', changeFrequency: 'daily', priority: 0.8 },
     { url: '/partidos/manana', changeFrequency: 'daily', priority: 0.8 },
     { url: '/por-fecha', changeFrequency: 'weekly', priority: 0.7 },
