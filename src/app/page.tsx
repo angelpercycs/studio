@@ -1,10 +1,9 @@
 import { getMatchesByDate } from "@/app/actions/getMatches";
 import { PartidosClientPage } from "@/components/partidos-client-page";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { type Metadata } from 'next'
 
-export const revalidate = 1800; // Revalidate every 30 minutes
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: 'Pronósticos de Fútbol para Hoy - Fútbol Stats Zone',

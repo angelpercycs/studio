@@ -3,17 +3,16 @@ import { PartidosClientPage } from "@/components/partidos-client-page";
 import { addDays, subDays, format, parseISO, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 import { type Metadata } from 'next'
-import { redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 
-export const revalidate = 1800; // Revalidate every 30 minutes
+export const revalidate = 1800; 
 
 function getDateFromParam(fecha: string): Date | null {
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+  const nowInLima = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
 
-  if (fecha === "ayer") return subDays(now, 1);
-  if (fecha === "manana") return addDays(now, 1);
-  if (fecha === "hoy") return now; // Although we redirect, handle it just in case.
-
+  if (fecha === "ayer") return subDays(nowInLima, 1);
+  if (fecha === "manana") return addDays(nowInLima, 1);
+  
   const parsedDate = parseISO(fecha);
   if (isValid(parsedDate)) {
     return parsedDate;
@@ -35,7 +34,7 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
   }
 
   let fechaText: string;
-  if (fecha === 'ayer' || fecha === 'manana' || fecha === 'hoy') {
+  if (fecha === 'ayer' || fecha === 'manana') {
     fechaText = fecha === 'manana' ? 'mañana' : fecha;
   } else {
     fechaText = format(date, "d 'de' MMMM", { locale: es });
@@ -59,14 +58,10 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
 export default async function Page({ params }: { params: { fecha: string } }) {
   const { fecha } = params;
   
-  if (fecha === 'hoy') {
-    redirect('/');
-  }
-
   const date = getDateFromParam(fecha);
   
-  if (!date) {
-    redirect('/');
+  if (!date || fecha === 'hoy') {
+    notFound();
   }
 
   const dateString = format(date, "yyyy-MM-dd");
