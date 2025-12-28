@@ -1,39 +1,31 @@
 import { getMatchesByDate } from "@/app/actions/getMatches";
 import { PartidosClientPage } from "@/components/partidos-client-page";
-import { addDays, subDays, format, parseISO } from "date-fns";
+import { addDays, subDays, format, parseISO, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 import { type Metadata } from 'next'
 import { redirect } from 'next/navigation';
 
-
 export const revalidate = 1800; // Revalidate every 30 minutes
 
-function getDateFromFecha(fecha: string): Date | null {
+function getDateFromParam(fecha: string): Date | null {
   const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
 
   if (fecha === "ayer") return subDays(now, 1);
   if (fecha === "manana") return addDays(now, 1);
-  
-  if (fecha === 'hoy') {
-    // This case should be handled by the root page.tsx, redirect just in case.
-    return null;
-  }
+  if (fecha === "hoy") return now; // Although we redirect, handle it just in case.
 
   const parsedDate = parseISO(fecha);
-  if (!isNaN(parsedDate.getTime())) {
+  if (isValid(parsedDate)) {
     return parsedDate;
   }
 
-  // If the date is invalid, we will redirect
   return null;
 }
 
 export async function generateMetadata({ params }: { params: { fecha: string } }): Promise<Metadata> {
   const { fecha } = params;
-  let fechaText = fecha;
-  if(fecha === 'manana') fechaText = 'mañana';
-
-  const date = getDateFromFecha(fecha);
+  
+  const date = getDateFromParam(fecha);
   
   if (!date) {
     return {
@@ -42,15 +34,24 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
     }
   }
 
-  const formattedDate = format(date, "d 'de' MMMM", { locale: es });
+  let fechaText: string;
+  if (fecha === 'ayer' || fecha === 'manana' || fecha === 'hoy') {
+    fechaText = fecha === 'manana' ? 'mañana' : fecha;
+  } else {
+    fechaText = format(date, "d 'de' MMMM", { locale: es });
+  }
   
   const fechaTitlePart = fechaText.charAt(0).toUpperCase() + fechaText.slice(1);
-  const title = `Pronósticos de Fútbol para ${fechaTitlePart} ${formattedDate} - Fútbol Stats Zone`;
-  const description = `Consulta los pronósticos y estadísticas de fútbol para ${fechaText}, ${formattedDate}. Análisis detallado, equipos favoritos, y resultados en vivo.`;
+  const title = `Pronósticos de Fútbol para ${fechaTitlePart} - Fútbol Stats Zone`;
+  const description = `Consulta los pronósticos y estadísticas de fútbol para ${fechaText}. Análisis detallado, equipos favoritos, y resultados en vivo.`;
 
   return {
     title,
     description,
+    robots: {
+      index: true,
+      follow: true,
+    }
   };
 }
 
@@ -62,7 +63,7 @@ export default async function Page({ params }: { params: { fecha: string } }) {
     redirect('/');
   }
 
-  const date = getDateFromFecha(fecha);
+  const date = getDateFromParam(fecha);
   
   if (!date) {
     redirect('/');
@@ -132,4 +133,3 @@ export default async function Page({ params }: { params: { fecha: string } }) {
     </>
   );
 }
-
