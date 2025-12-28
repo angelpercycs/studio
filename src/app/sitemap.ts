@@ -3,7 +3,6 @@ import { MetadataRoute } from 'next';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://fszscore.com';
 
-  // Define las rutas principales del sitio
   const routes = [
     { url: '/', changeFrequency: 'hourly', priority: 1.0 },
     { url: '/partidos/ayer', changeFrequency: 'daily', priority: 0.8 },
@@ -13,7 +12,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: '/por-favorito', changeFrequency: 'weekly', priority: 0.7 },
   ];
 
-  // La fecha y hora se generan dinámicamente en cada solicitud, asegurando que Google siempre vea contenido fresco.
   return routes.map((route) => ({
     url: `${baseUrl}${route.url}`,
     lastModified: new Date().toISOString(),
