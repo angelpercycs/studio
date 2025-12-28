@@ -13,9 +13,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: '/por-favorito', changeFrequency: 'weekly', priority: 0.7 },
   ];
 
+  // La fecha y hora se generan dinámicamente en cada solicitud, asegurando que Google siempre vea contenido fresco.
   return routes.map((route) => ({
     url: `${baseUrl}${route.url}`,
-    lastModified: new Date().toISOString(), // Genera la fecha y hora actuales en cada solicitud
+    lastModified: new Date().toISOString(),
     changeFrequency: route.changeFrequency as 'hourly' | 'daily' | 'weekly',
     priority: route.priority,
   }));
