@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { AdBanner } from '@/components/ad-banner';
 import { Calendar, CalendarDays, Shield, Star } from 'lucide-react';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Fútbol Stats Zone',
@@ -30,6 +31,17 @@ export default function RootLayout({
           rel="stylesheet"
         />
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5144766807318748" crossOrigin="anonymous"></script>
+        {/* Google tag (gtag.js) */}
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-1NDL1YXWW7"></Script>
+        <Script id="google-analytics">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-1NDL1YXWW7');
+          `}
+        </Script>
       </head>
       <body className="font-body antialiased">
          <div className="flex min-h-screen flex-col bg-background text-foreground">
