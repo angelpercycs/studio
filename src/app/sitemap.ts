@@ -3,6 +3,7 @@ import { MetadataRoute } from 'next';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.fszscore.com';
 
+  // Forzar reconstrucción con un cambio
   const routes = [
     { url: '/', changeFrequency: 'hourly', priority: 1.0 },
     { url: '/partidos/hoy', changeFrequency: 'hourly', priority: 1.0 },
