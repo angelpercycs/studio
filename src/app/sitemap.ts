@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 
+// Forzando la regeneración del sitemap - 7 de enero 2026
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.fszscore.com';
 
