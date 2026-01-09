@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Pronósticos de Fútbol para Hoy - Fútbol Stats Zone',
   description: 'Consulta los pronósticos y estadísticas de fútbol para hoy. Análisis detallado, equipos favoritos, y resultados en vivo.',
   alternates: {
-    canonical: '/',
+    canonical: 'https://www.fszscore.com/',
   },
 };
 

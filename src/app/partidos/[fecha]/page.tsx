@@ -13,7 +13,7 @@ function getDateFromParam(fecha: string): Date | null {
   const nowInLima = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
 
   if (fecha === "ayer") return subDays(nowInLima, 1);
-  if (fecha === "manana") return addDays(nowInLina, 1);
+  if (fecha === "manana") return addDays(nowInLima, 1);
   
   const parsedDate = parseISO(fecha);
   if (isValid(parsedDate)) {
@@ -38,6 +38,7 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
   let fechaText: string;
   let title: string;
   let description: string;
+  const canonicalUrl = `${BASE_URL}/partidos/${fecha}`;
 
   if (fecha === 'ayer') {
     fechaText = 'de Ayer';
@@ -58,7 +59,7 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
     title,
     description,
     alternates: {
-      canonical: `${BASE_URL}/partidos/${fecha}`,
+      canonical: canonicalUrl,
     },
     robots: {
       index: true,
