@@ -98,7 +98,11 @@ export default function RootLayout({
             </main>
             <footer className="w-full py-4 px-4 md:px-0 text-center text-xs text-muted-foreground space-y-4">
               <div>
-                  <p className="mb-2">© 2025 Fútbol Stats Zone. Todos los derechos reservados.</p>
+                  <div className="mb-2">
+                    <p className="inline">© 2025 Fútbol Stats Zone. Todos los derechos reservados.</p>
+                    <Link href="/politica-de-privacidad" className="ml-4 underline hover:text-foreground">Política de Privacidad</Link>
+                    <Link href="/terminos-y-condiciones" className="ml-4 underline hover:text-foreground">Términos y Condiciones</Link>
+                  </div>
                   <p className="mb-2">
                   Fútbol Stats Zone es un sitio independiente y no está afiliado, patrocinado ni autorizado por ninguna liga, federación, club o entidad oficial mencionada en este sitio.
                   </p>
