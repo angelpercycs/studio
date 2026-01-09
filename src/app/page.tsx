@@ -8,6 +8,9 @@ export const revalidate = 1800;
 export const metadata: Metadata = {
   title: 'Pronósticos de Fútbol para Hoy - Fútbol Stats Zone',
   description: 'Análisis estadístico y pronósticos de fútbol precisos para las principales ligas. Consulta las probabilidades de victoria hoy mismo.',
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export default async function Page() {
