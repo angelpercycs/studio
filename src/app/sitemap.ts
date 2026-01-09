@@ -5,7 +5,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const routes = [
     { url: '/', changeFrequency: 'hourly', priority: 1.0 },
-    { url: '/partidos/hoy', changeFrequency: 'hourly', priority: 1.0 },
     { url: '/partidos/ayer', changeFrequency: 'daily', priority: 0.8 },
     { url: '/partidos/manana', changeFrequency: 'daily', priority: 0.8 },
     { url: '/por-fecha', changeFrequency: 'weekly', priority: 0.7 },
@@ -14,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   return routes.map((route) => ({
-    url: route.url === '/' ? baseUrl : `${baseUrl}${route.url}`,
+    url: `${baseUrl}${route.url}`,
     lastModified: new Date().toISOString(),
     changeFrequency: route.changeFrequency as 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never',
     priority: route.priority,
