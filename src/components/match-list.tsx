@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Loader2, Pin } from "lucide-react";
+import { AlertCircle, Loader2, Pin, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Progress } from "./ui/progress";
@@ -96,6 +96,8 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const isFavoriteTeam2 = match.favorite === 'team2';
   const isFavorite = isFavoriteTeam1 || isFavoriteTeam2;
   const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : match.team2?.name;
+  const predictionText = isFavoriteTeam1 ? 'Gana Local' : (isFavoriteTeam2 ? 'Gana Visita' : '');
+
 
   const handleOpenSheet = useCallback(async () => {
     setIsSheetOpen(true);
@@ -151,6 +153,13 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                 </div>
                 <span className="font-bold w-6 text-center">{match.team2_score ?? '-'}</span>
             </div>
+             {isFavorite && (
+              <div className="mt-2 text-xs text-primary font-semibold flex items-center gap-2">
+                <ShieldCheck className="h-3 w-3"/>
+                <span>Pronóstico: {predictionText}</span>
+                <span>Probabilidad: 85%</span>
+              </div>
+            )}
         </div>
       </div>
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -331,3 +340,5 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     </div>
   );
 };
+
+    
