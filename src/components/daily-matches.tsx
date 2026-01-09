@@ -6,6 +6,7 @@ import { getMatchesByDate } from "@/app/actions/getMatches";
 import { MatchList } from "@/components/match-list";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AdBanner } from "./ad-banner";
 
 const PINNED_MATCHES_STORAGE_KEY = 'pinnedDailyMatches';
 
@@ -104,6 +105,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
                 loading={loading}
                 onPinToggle={handlePinToggle}
                 pinnedMatchIds={pinnedMatchIds}
+                adBanner={<AdBanner />}
             />
           </div>
       </CardContent>

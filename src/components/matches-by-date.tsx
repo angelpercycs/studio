@@ -11,6 +11,7 @@ import { MatchList } from "@/components/match-list";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AdBanner } from "./ad-banner";
 
 const PINNED_MATCHES_STORAGE_KEY = 'pinnedDateMatches';
 
@@ -168,6 +169,7 @@ export function MatchesByDate() {
             loading={loading}
             onPinToggle={handlePinToggle}
             pinnedMatchIds={pinnedMatchIds}
+            adBanner={<AdBanner />}
         />
       </CardContent>
     </Card>

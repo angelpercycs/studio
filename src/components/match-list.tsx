@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -232,7 +233,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
 }
 
 
-export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string> }) => {
+export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode }) => {
   if (loading) {
     return <MatchDaySkeleton />;
   }
@@ -314,27 +315,30 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
   return (
     <div className="w-full space-y-4 mt-4">
       <PinnedMatchesComponent />
-      {sortedLeagues.map(([groupKey, { matches: leagueMatches, country, leagueName, flag }]) => {
+      {sortedLeagues.map(([groupKey, { matches: leagueMatches, country, leagueName, flag }], index) => {
         return (
-          <Card key={groupKey}>
-            <CardContent className="p-0">
-              <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
-                {flag && <img src={flag} alt={country} className="h-5 w-5" />}
-                {country} - {leagueName}
-              </div>
-              <div>
-                <div className="divide-y">
-                  {leagueMatches.map((match: any) => 
-                    <MatchRow 
-                        key={match.id} 
-                        match={match}
-                        onPinToggle={onPinToggle}
-                        isPinned={pinnedMatchIds?.has(match.id)}
-                    />)}
+          <React.Fragment key={groupKey}>
+            <Card>
+              <CardContent className="p-0">
+                <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
+                  {flag && <img src={flag} alt={country} className="h-5 w-5" />}
+                  {country} - {leagueName}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <div>
+                  <div className="divide-y">
+                    {leagueMatches.map((match: any) => 
+                      <MatchRow 
+                          key={match.id} 
+                          match={match}
+                          onPinToggle={onPinToggle}
+                          isPinned={pinnedMatchIds?.has(match.id)}
+                      />)}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            {index === 0 && adBanner && <div className="my-4">{adBanner}</div>}
+          </React.Fragment>
         )
       })}
     </div>

@@ -4,7 +4,6 @@ import { Toaster } from '@/components/ui/toaster';
 import Image from 'next/image';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
-import { AdBanner } from '@/components/ad-banner';
 import { Calendar, CalendarDays, Shield, Star } from 'lucide-react';
 import Script from 'next/script';
 
@@ -63,12 +62,6 @@ export default function RootLayout({
                 </Link>
               </header>
 
-              <div className="mb-8 flex w-full justify-center">
-                <div className="w-full max-w-4xl">
-                  <AdBanner />
-                </div>
-              </div>
-              
               <h2 className="text-xl font-semibold mb-4 text-center">Encuentros y Estadísticas</h2>
 
               <Tabs defaultValue="daily" className="w-full">
