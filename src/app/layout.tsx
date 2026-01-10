@@ -62,7 +62,7 @@ export default function RootLayout({
                 </Link>
               </header>
 
-              <h2 className="text-xl font-semibold mb-4 text-center">Encuentros y Estadísticas</h2>
+              <h2 className="text-xl font-semibold mb-4 text-center">Encuentros y Estadísticas Profesionales (Tipo StatsZone)</h2>
 
               <Tabs defaultValue="daily" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
