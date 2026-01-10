@@ -130,7 +130,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const handleShare = async () => {
     const shareData = {
       title: `${match.team1?.name} vs ${match.team2?.name} - fszscore`,
-      text: `🔥 ¡OJO CON ESTE DATO! 🔥\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📊 Pronóstico: ${predictionText} (Probabilidad: 85%)\n📈 Mira las estadísticas tipo StatsZone aquí:`,
+      text: `🔥 ¡OJO CON ESTE DATO! 🔥\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📊 Pronóstico: ${predictionText} (Probabilidad: 50%)\n📈 Mira las estadísticas tipo StatsZone aquí:`,
       url: window.location.href,
     };
 
@@ -178,7 +178,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
               <div className="mt-2 text-xs text-primary font-semibold flex items-center gap-2">
                 <ShieldCheck className="h-3 w-3"/>
                 <span>Pronóstico: {predictionText}</span>
-                <span>Probabilidad: 85%</span>
+                <span>Probabilidad: 50%</span>
               </div>
             )}
         </div>
@@ -209,8 +209,8 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                   <p className="text-sm font-bold text-primary">
                     Favorito a ganar: {favoriteTeamName}
                   </p>
-                  <Progress value={85} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
-                  <p className="text-xs font-semibold text-primary">Predicción con 85% de probabilidad</p>
+                  <Progress value={50} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
+                  <p className="text-xs font-semibold text-primary">Predicción con 50% de probabilidad</p>
               </div>
             )}
           </SheetHeader>
