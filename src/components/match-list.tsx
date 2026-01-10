@@ -166,7 +166,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="w-full max-w-[90vw] sm:max-w-xl overflow-y-auto">
           <SheetHeader className="text-left pb-4 border-b">
-            <SheetTitle>{match.team1?.name} vs {match.team2?.name}</SheetTitle>
+            <SheetTitle>{`${match.team1?.name} vs ${match.team2?.name} - Estadísticas de Fútbol (Tipo StatsZone) | fszscore`}</SheetTitle>
             <SheetDescription>
                 {match.league?.name}
                 <br />
@@ -304,6 +304,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
   }, {} as Record<string, { matches: any[], country: string, leagueName: string, flag: string | null }>);
 
   const sortedLeagues = Object.entries(groupedByLeague).sort(([, dataA], [, dataB]) => {
+    if (dataA.country === 'Unknown Country' || dataB.country === 'Unknown Country') return dataA.leagueName.localeCompare(dataB.leagueName);
     const countryCompare = dataA.country.localeCompare(dataB.country);
     if (countryCompare !== 0) {
       return countryCompare;
@@ -344,5 +345,3 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     </div>
   );
 };
-
-    
