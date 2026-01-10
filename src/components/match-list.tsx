@@ -142,7 +142,8 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
         alert("¡Pronóstico copiado! Pégalo en tu WhatsApp.");
       }
     } catch (err) {
-      console.error("Error al compartir:", err);
+      // No loguear el error para evitar el overlay de Next.js en desarrollo.
+      // El fallback al clipboard ya maneja la situación.
     }
   };
 
