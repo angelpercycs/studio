@@ -202,9 +202,9 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
         <div className="flex items-center justify-end w-[130px] flex-shrink-0 font-mono text-sm whitespace-nowrap pl-2">
             {match.odds ? (
                  <div className="flex justify-around items-center w-full text-center gap-2">
-                     <span className="text-center">{match.odds.home_odds?.toFixed(2)}</span>
-                     <span className="text-center">{match.odds.draw_odds?.toFixed(2)}</span>
-                     <span className="text-center">{match.odds.away_odds?.toFixed(2)}</span>
+                     <span className="text-center w-1/3">{match.odds.home_odds?.toFixed(2)}</span>
+                     <span className="text-center w-1/3">{match.odds.draw_odds?.toFixed(2)}</span>
+                     <span className="text-center w-1/3">{match.odds.away_odds?.toFixed(2)}</span>
                 </div>
             ) : <div className="w-[80px] h-4"></div>}
              <div className="flex flex-col items-center w-[40px] pl-2 text-base">
@@ -376,15 +376,32 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     return dataA.leagueName.localeCompare(dataB.leagueName);
   });
   
+  const renderedContent: React.ReactNode[] = [];
   let matchesCount = 0;
   let adShown = false;
+  const adAfterMatchCount = 2; 
 
-  const adAfterMatchCount = 3;
+  sortedLeagues.forEach(([groupKey, { matches: leagueMatches, country, leagueName, flag }]) => {
+    const leagueMatchRows: React.ReactNode[] = [];
+    
+    leagueMatches.forEach((match: any) => {
+      leagueMatchRows.push(
+        <MatchRow 
+          key={match.id} 
+          match={match}
+          onPinToggle={onPinToggle}
+          isPinned={pinnedMatchIds?.has(match.id)}
+        />
+      );
+      matchesCount++;
 
-  const renderedContent = sortedLeagues.reduce((acc, [groupKey, { matches: leagueMatches, country, leagueName, flag }], index) => {
-    const showAdAfterThisGroup = !adShown && adBanner && (matchesCount + leagueMatches.length >= adAfterMatchCount);
+      if (adBanner && !adShown && matchesCount >= adAfterMatchCount) {
+        leagueMatchRows.push(<div key={`ad-${match.id}`} className="my-4 px-2">{adBanner}</div>);
+        adShown = true;
+      }
+    });
 
-    acc.push(
+    renderedContent.push(
       <Card key={groupKey}>
         <CardContent className="p-0">
           <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
@@ -393,28 +410,13 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
           </div>
           <div>
             <div className="divide-y">
-              {leagueMatches.map((match: any) => 
-                <MatchRow 
-                    key={match.id} 
-                    match={match}
-                    onPinToggle={onPinToggle}
-                    isPinned={pinnedMatchIds?.has(match.id)}
-                />)}
+              {leagueMatchRows}
             </div>
           </div>
         </CardContent>
       </Card>
     );
-
-    matchesCount += leagueMatches.length;
-
-    if (showAdAfterThisGroup) {
-      adShown = true;
-      acc.push(<div key={`ad-${index}`} className="my-4">{adBanner}</div>);
-    }
-    
-    return acc;
-  }, [] as JSX.Element[]);
+  });
 
 
   return (
