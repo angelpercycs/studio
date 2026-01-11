@@ -185,9 +185,9 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
         <div className="flex items-center justify-end w-[130px] flex-shrink-0 font-mono text-sm whitespace-nowrap pl-2">
             {match.odds ? (
                  <div className="flex justify-around items-center w-full text-center gap-2">
-                     <span>{match.odds.home_odds?.toFixed(2)}</span>
-                     <span>{match.odds.draw_odds?.toFixed(2)}</span>
-                     <span>{match.odds.away_odds?.toFixed(2)}</span>
+                     <span className="w-1/3 text-center">{match.odds.home_odds?.toFixed(2)}</span>
+                     <span className="w-1/3 text-center">{match.odds.draw_odds?.toFixed(2)}</span>
+                     <span className="w-1/3 text-center">{match.odds.away_odds?.toFixed(2)}</span>
                 </div>
             ) : <div className="w-[80px] h-4"></div>}
              <div className="flex flex-col items-center w-[40px] pl-2 text-base">
@@ -364,7 +364,6 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
         const showAd = index === 0 && adBanner;
         return (
           <React.Fragment key={groupKey}>
-             {showAd && <div className="my-4">{adBanner}</div>}
             <Card>
               <CardContent className="p-0">
                 <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
@@ -384,6 +383,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
                 </div>
               </CardContent>
             </Card>
+            {showAd && <div className="my-4">{adBanner}</div>}
           </React.Fragment>
         )
       })}
