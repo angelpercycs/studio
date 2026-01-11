@@ -5,7 +5,7 @@ import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Clock, Loader2, Pin, ShieldCheck } from "lucide-react";
+import { AlertCircle, Clock, Loader2, Pin, Share2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Progress } from "./ui/progress";
@@ -96,7 +96,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const isFavoriteTeam1 = match.favorite === 'team1';
   const isFavoriteTeam2 = match.favorite === 'team2';
   const isFavorite = isFavoriteTeam1 || isFavoriteTeam2;
-  const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : match.team2?.name;
+  const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : (isFavoriteTeam2 ? match.team2?.name : '');
   const predictionText = isFavoriteTeam1 ? 'Gana Local' : (isFavoriteTeam2 ? 'Gana Visita' : '');
 
 
@@ -128,6 +128,10 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }
 
   const handleShare = async () => {
+    if (!isFavorite) {
+      alert("Este partido no tiene un pronóstico claro para compartir.");
+      return;
+    }
     const shareData = {
       title: `${match.team1?.name} vs ${match.team2?.name} - fszscore`,
       text: `🔥 ¡OJO CON ESTE DATO! 🔥\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📊 Pronóstico: ${predictionText} (Probabilidad: 50%)\n📈 Mira las estadísticas tipo StatsZone aquí:`,
@@ -178,15 +182,15 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             )}
         </div>
         
-        <div className="flex items-center justify-end w-[130px] font-mono text-sm whitespace-nowrap">
+        <div className="flex items-center justify-end w-[130px] flex-shrink-0 font-mono text-sm whitespace-nowrap pl-2">
             {match.odds ? (
-                 <div className="flex justify-between items-center w-full text-center">
-                     <span className="w-1/3">{match.odds.home_odds?.toFixed(2)}</span>
-                     <span className="w-1/3">{match.odds.draw_odds?.toFixed(2)}</span>
-                     <span className="w-1/3">{match.odds.away_odds?.toFixed(2)}</span>
+                 <div className="flex justify-around items-center w-full text-center gap-2">
+                     <span>{match.odds.home_odds?.toFixed(2)}</span>
+                     <span>{match.odds.draw_odds?.toFixed(2)}</span>
+                     <span>{match.odds.away_odds?.toFixed(2)}</span>
                 </div>
-            ) : <div className="w-full h-4"></div>}
-             <div className="flex flex-col items-center w-[40px] pl-2">
+            ) : <div className="w-[80px] h-4"></div>}
+             <div className="flex flex-col items-center w-[40px] pl-2 text-base">
                  <span className="font-bold">{match.team1_score ?? '-'}</span>
                  <span className="font-bold">{match.team2_score ?? '-'}</span>
             </div>
@@ -204,13 +208,15 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
 
-            <button 
-              onClick={handleShare}
-              className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
-              COMPARTIR PRONÓSTICO
-            </button>
+            {isFavorite && (
+               <button 
+                onClick={handleShare}
+                className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95"
+              >
+                <Share2 className="h-4 w-4" />
+                COMPARTIR PRONÓSTICO
+              </button>
+            )}
 
             {isFavorite && (
               <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
@@ -355,8 +361,10 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     <div className="w-full space-y-4 mt-4">
       <PinnedMatchesComponent />
       {sortedLeagues.map(([groupKey, { matches: leagueMatches, country, leagueName, flag }], index) => {
+        const showAd = index === 0 && adBanner;
         return (
           <React.Fragment key={groupKey}>
+             {showAd && <div className="my-4">{adBanner}</div>}
             <Card>
               <CardContent className="p-0">
                 <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
@@ -376,7 +384,6 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
                 </div>
               </CardContent>
             </Card>
-            {index === 0 && adBanner && <div className="my-4">{adBanner}</div>}
           </React.Fragment>
         )
       })}
