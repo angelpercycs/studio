@@ -5,11 +5,11 @@ import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Loader2, Pin, ShieldCheck } from "lucide-react";
+import { AlertCircle, Clock, Loader2, Pin, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Progress } from "./ui/progress";
-import { getMatchStats } from "@/app/actions/getMatches";
+import { getMatchStats } from "@/app/actions/getRoundData";
 import { cn } from "@/lib/utils";
 
 
@@ -116,9 +116,9 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }, [match, matchDetails]);
 
   const BlinkingLight = () => (
-    <div className="relative flex h-3 w-3 mx-2">
+    <div className="relative flex h-2 w-2 ml-2">
       <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
-      <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
+      <div className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></div>
     </div>
   );
   
@@ -149,44 +149,53 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
 
   return (
     <>
-      <div onClick={handleOpenSheet} className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
+      <div onClick={handleOpenSheet} className="flex items-center w-full px-2 py-3 hover:bg-muted/50 cursor-pointer group">
         {onPinToggle && (
-           <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center -ml-2">
+           <button onClick={handlePinClick} className="p-2 flex items-center justify-center">
             <div className={cn(
               "h-4 w-4 rounded-full border-2 border-foreground/50 transition-colors",
               isPinned && "bg-foreground border-foreground"
             )}></div>
           </button>
         )}
-        <div className="w-16 text-muted-foreground text-center text-sm">{timeDisplay}</div>
-        <div className="flex-grow space-y-1 text-sm">
-            <div className="flex justify-between items-center">
-                <div className="flex-grow text-left flex items-center">
-                    <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
-                    {isFavoriteTeam1 && <BlinkingLight />}
-                </div>
-                <span className="font-bold w-6 text-center">{match.team1_score ?? '-'}</span>
+        <div className="w-14 text-muted-foreground text-center text-sm font-mono">{timeDisplay}</div>
+        
+        <div className="flex-grow space-y-1 text-sm pl-2">
+            <div className="flex items-center">
+                <span className={cn(isFavoriteTeam1 && "font-bold text-primary")}>{match.team1?.name ?? 'Equipo no encontrado'}</span>
+                {isFavoriteTeam1 && <BlinkingLight />}
             </div>
-            <div className="flex justify-between items-center">
-                <div className="flex-grow text-left flex items-center">
-                    <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
-                    {isFavoriteTeam2 && <BlinkingLight />}
-                </div>
-                <span className="font-bold w-6 text-center">{match.team2_score ?? '-'}</span>
+            <div className="flex items-center">
+                <span className={cn(isFavoriteTeam2 && "font-bold text-primary")}>{match.team2?.name ?? 'Equipo no encontrado'}</span>
+                {isFavoriteTeam2 && <BlinkingLight />}
             </div>
-             {isFavorite && (
-              <div className="mt-2 text-xs text-primary font-semibold flex items-center gap-2">
-                <ShieldCheck className="h-3 w-3"/>
+            {isFavorite && (
+              <div className="mt-1 text-xs text-primary font-semibold flex items-center gap-1">
+                <Clock className="h-3 w-3"/>
                 <span>Pronóstico: {predictionText}</span>
-                <span>Probabilidad: 50%</span>
+                <span>Prob: 50%</span>
               </div>
             )}
         </div>
+        
+        <div className="flex items-center justify-end w-[130px] font-mono text-sm whitespace-nowrap">
+            {match.odds ? (
+                 <div className="flex justify-between items-center w-full text-center">
+                     <span className="w-1/3">{match.odds.home_odds?.toFixed(2)}</span>
+                     <span className="w-1/3">{match.odds.draw_odds?.toFixed(2)}</span>
+                     <span className="w-1/3">{match.odds.away_odds?.toFixed(2)}</span>
+                </div>
+            ) : <div className="w-full h-4"></div>}
+             <div className="flex flex-col items-center w-[40px] pl-2">
+                 <span className="font-bold">{match.team1_score ?? '-'}</span>
+                 <span className="font-bold">{match.team2_score ?? '-'}</span>
+            </div>
+        </div>
+
       </div>
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="w-full max-w-[90vw] sm:max-w-xl overflow-y-auto">
           <SheetHeader className="text-left pb-4 border-b">
-            {/* Título optimizado para robar tráfico de StatsZone */}
             <SheetTitle>{`${match.team1?.name} vs ${match.team2?.name} - Estadísticas de Fútbol (Tipo StatsZone) | fszscore`}</SheetTitle>
             
             <SheetDescription>
@@ -195,7 +204,6 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
 
-            {/* BOTÓN DE COMPARTIR VIRAL */}
             <button 
               onClick={handleShare}
               className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95"

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { getMatchesByDate } from "@/app/actions/getMatches";
+import { getMatchesByDate } from "@/app/actions/getRoundData";
 import { MatchList } from "@/components/match-list";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';

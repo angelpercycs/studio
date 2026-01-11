@@ -1,4 +1,4 @@
-import { getMatchesByDate } from "@/app/actions/getMatches";
+import { getMatchesByDate } from "@/app/actions/getRoundData";
 import { PartidosClientPage } from "@/components/partidos-client-page";
 import { addDays, subDays, format, parseISO, isValid } from "date-fns";
 import { es } from "date-fns/locale";

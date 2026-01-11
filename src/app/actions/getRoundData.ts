@@ -1,5 +1,6 @@
 'use server';
 import { supabase } from '@/lib/supabase';
+import { startOfDay, endOfDay, parseISO } from 'date-fns';
 
 let leaguesCache: any[] | null = null;
 let leaguesMapCache: { [key: string]: any } | null = null;
@@ -204,6 +205,134 @@ async function getFavoritesForMatches(matchIds: string[]): Promise<Record<string
     return favoritesMap;
 }
 
+async function getOddsForMatches(matchIds: string[]): Promise<Record<string, any>> {
+    if (matchIds.length === 0) {
+        return {};
+    }
+
+    const { data, error } = await supabase
+        .from('match_odds')
+        .select('match_id, home_odds, draw_odds, away_odds')
+        .in('match_id', matchIds);
+
+    if (error) {
+        console.error('Error fetching odds:', error);
+        return {};
+    }
+
+    const oddsMap: Record<string, any> = {};
+    for (const odd of data) {
+        oddsMap[odd.match_id] = odd;
+    }
+
+    return oddsMap;
+}
+
+export async function getMatchesByDate(dateString: string) {
+    try {
+        const targetDate = parseISO(dateString);
+        const startDate = startOfDay(targetDate).toISOString();
+        const endDate = endOfDay(targetDate).toISOString();
+
+        const { data: matchesData, error: matchesError } = await supabase
+            .from('matches')
+            .select(`
+                id,
+                match_date,
+                match_date_iso:match_date,
+                team1_id,
+                team2_id,
+                league_id,
+                season,
+                team1_score,
+                team2_score,
+                matchday,
+                team1:teams!matches_team1_id_fkey(id, name),
+                team2:teams!matches_team2_id_fkey(id, name)
+            `)
+            .gte('match_date', startDate)
+            .lte('match_date', endDate)
+            .order('match_date', { ascending: true });
+
+        if (matchesError) {
+            console.error('Error fetching matches:', matchesError);
+            return { data: null, error: `Error de Supabase: ${matchesError.message}` };
+        }
+
+        if (!matchesData || matchesData.length === 0) {
+            return { data: [], error: null };
+        }
+        
+        const leaguesMap = await getLeagues();
+        const matchIds = matchesData.map(m => m.id);
+        const [favoritesMap, oddsMap] = await Promise.all([
+            getFavoritesForMatches(matchIds),
+            getOddsForMatches(matchIds)
+        ]);
+
+        const matchesWithLeaguesAndFavorites = matchesData.map(match => {
+            let favorite = null;
+            const favoriteTeamId = favoritesMap[match.id];
+            if (favoriteTeamId) {
+                if (favoriteTeamId === match.team1_id) {
+                    favorite = 'team1';
+                } else if (favoriteTeamId === match.team2_id) {
+                    favorite = 'team2';
+                }
+            }
+            return {
+                ...match,
+                league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } },
+                favorite,
+                odds: oddsMap[match.id] || null
+            };
+        });
+        
+        return { data: matchesWithLeaguesAndFavorites, error: null };
+    } catch (e: any) {
+        console.error('Unexpected error in getMatchesByDate:', e);
+        return { data: null, error: `An unexpected error occurred: ${e.message}` };
+    }
+}
+
+export async function getMatchStats(match: {
+    team1_id: string;
+    team2_id: string;
+    season: string;
+    league_id: string;
+    match_date: string;
+    id: string;
+}) {
+    if (!match.team1_id || !match.team2_id || !match.season || !match.league_id) {
+        return { data: null, error: "Faltan datos para obtener estadísticas." };
+    }
+
+    try {
+        const [team1Standings, team2Standings, team1Last3Data, team2Last3Data] = await Promise.all([
+            getTeamStandings(match.team1_id, match.season, match.league_id, match.match_date),
+            getTeamStandings(match.team2_id, match.season, match.league_id, match.match_date),
+            getLastNMatchesStandings(match.team1_id, match.season, match.league_id, true, match.match_date),
+            getLastNMatchesStandings(match.team2_id, match.season, match.league_id, false, match.match_date)
+        ]);
+
+        return {
+            data: {
+                team1_standings: team1Standings,
+                team2_standings: team2Standings,
+                team1_last_3: team1Last3Data?.all,
+                team2_last_3: team2Last3Data?.all,
+                team1_last_3_home_away: team1Last3Data?.homeAway,
+                team2_last_3_home_away: team2Last3Data?.homeAway,
+            }, 
+            error: null
+        };
+    } catch (error) {
+        console.error('Error processing stats for match', match.id, error);
+        return { data: null, error: "Error al procesar las estadísticas del partido." };
+    }
+}
+
+
 export async function getCountries() {
     try {
         const { data, error } = await supabase
@@ -331,7 +460,10 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
         
         const leaguesMap = await getLeagues();
         const matchIds = matchesData.map(m => m.id);
-        const favoritesMap = await getFavoritesForMatches(matchIds);
+        const [favoritesMap, oddsMap] = await Promise.all([
+            getFavoritesForMatches(matchIds),
+            getOddsForMatches(matchIds)
+        ]);
         
         const matchesWithLeagues = matchesData.map(match => {
             let favorite = null;
@@ -346,7 +478,8 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
             return {
                 ...match,
                 league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } },
-                favorite
+                favorite,
+                odds: oddsMap[match.id] || null
             };
         });
 
@@ -386,13 +519,6 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
     }
 }
 
-function checkIsFavoriteTeam(standings: any): boolean {
-    if (!standings || standings.played < 8) return false;
-    const winRate = (standings.won / standings.played) * 100;
-    const lossRate = (standings.lost / standings.played) * 100;
-    return winRate > 45 && lossRate < 33;
-}
-
 export async function getTeamsByLeague(leagueId: string, season: string) {
     try {
         if (!leagueId || !season) return { data: [], error: null };
@@ -423,19 +549,9 @@ export async function getTeamsByLeague(leagueId: string, season: string) {
             if (match.team2 && !teamsMap.has(match.team2.id)) teamsMap.set(match.team2.id, { id: match.team2.id, name: match.team2.name });
         });
 
-        const teamsData = Array.from(teamsMap.values());
+        const teamsData = Array.from(teamsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 
-        const standingsPromises = teamsData.map(team => 
-            getTeamStandings(team.id, season, leagueId, new Date().toISOString())
-        );
-        const standingsResults = await Promise.all(standingsPromises);
-
-        const favoriteTeams = teamsData
-            .map((team, index) => ({ team, standings: standingsResults[index] }))
-            .filter(({ standings }) => checkIsFavoriteTeam(standings))
-            .map(({ team }) => ({ id: team.id, name: team.name }));
-
-        return { data: favoriteTeams, error: null };
+        return { data: teamsData, error: null };
     } catch (e: any) {
         console.error('Unexpected error in getTeamsByLeague:', e);
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
@@ -478,7 +594,10 @@ export async function getTeamMatches(teamId: string, leagueId: string, season: s
         
         const leaguesMap = await getLeagues();
         const matchIds = matchesData.map(m => m.id);
-        const favoritesMap = await getFavoritesForMatches(matchIds);
+        const [favoritesMap, oddsMap] = await Promise.all([
+            getFavoritesForMatches(matchIds),
+            getOddsForMatches(matchIds)
+        ]);
         
         const matchesWithLeagues = matchesData.map(match => {
             let favorite = null;
@@ -493,7 +612,8 @@ export async function getTeamMatches(teamId: string, leagueId: string, season: s
             return {
                 ...match,
                 league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } },
-                favorite
+                favorite,
+                odds: oddsMap[match.id] || null
             };
         });
         

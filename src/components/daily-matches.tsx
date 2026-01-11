@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { getMatchesByDate } from "@/app/actions/getMatches";
+import { getMatchesByDate } from "@/app/actions/getRoundData";
 import { MatchList } from "@/components/match-list";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";

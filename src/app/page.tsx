@@ -1,4 +1,4 @@
-import { getMatchesByDate } from "@/app/actions/getMatches";
+import { getMatchesByDate } from "@/app/actions/getRoundData";
 import { PartidosClientPage } from "@/components/partidos-client-page";
 import { format } from "date-fns";
 import { type Metadata } from 'next'
