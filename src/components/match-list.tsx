@@ -11,6 +11,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Progress } from "./ui/progress";
 import { getMatchStats } from "@/app/actions/getRoundData";
 import { cn } from "@/lib/utils";
+import { getMatchPrediction } from "@/ai/flows/get-match-prediction-flow";
+import type { MatchPredictionOutput } from "@/ai/schemas/match-prediction-schemas";
 
 
 const MatchDaySkeleton = () => (
@@ -86,33 +88,57 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
 const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [matchDetails, setMatchDetails] = useState<any | null>(null);
+  const [prediction, setPrediction] = useState<MatchPredictionOutput | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
   
   const timeDisplay = match.match_date_iso 
       ? new Date(match.match_date_iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
       : '--:--';
-
-  const isFavoriteTeam1 = match.favorite === 'team1';
-  const isFavoriteTeam2 = match.favorite === 'team2';
-  const isFavorite = isFavoriteTeam1 || isFavoriteTeam2;
-  const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : (isFavoriteTeam2 ? match.team2?.name : '');
-  const predictionText = isFavoriteTeam1 ? 'Gana Local' : (isFavoriteTeam2 ? 'Gana Visita' : '');
-
+  
+  const isFavorite = prediction?.has_prediction && prediction.winner_name;
+  const isFavoriteTeam1 = isFavorite && prediction?.winner_name === match.team1?.name;
+  const isFavoriteTeam2 = isFavorite && prediction?.winner_name === match.team2?.name;
 
   const handleOpenSheet = useCallback(async () => {
     setIsSheetOpen(true);
-    if (!matchDetails) {
-      setDetailsLoading(true);
-      setDetailsError(null);
-      const result = await getMatchStats(match);
-      if (result.error) {
-        setDetailsError(result.error);
-      } else {
-        setMatchDetails(result.data);
-      }
+    if (matchDetails) return;
+    
+    setDetailsLoading(true);
+    setDetailsError(null);
+    setPrediction(null);
+
+    const result = await getMatchStats(match);
+    
+    if (result.error) {
+      setDetailsError(result.error);
       setDetailsLoading(false);
+      return;
+    } 
+    
+    setMatchDetails(result.data);
+
+    if (result.data?.team1_standings && result.data?.team2_standings && result.data?.team1_last_3 && result.data?.team2_last_3 && result.data?.team1_last_3_home_away && result.data?.team2_last_3_home_away) {
+        try {
+            const predictionInput = {
+                team1Name: match.team1?.name,
+                team2Name: match.team2?.name,
+                team1_standings: result.data.team1_standings,
+                team2_standings: result.data.team2_standings,
+                team1_last_3: result.data.team1_last_3,
+                team2_last_3: result.data.team2_last_3,
+                team1_last_3_home_away: result.data.team1_last_3_home_away,
+                team2_last_3_home_away: result.data.team2_last_3_home_away,
+            };
+            const pred = await getMatchPrediction(predictionInput);
+            setPrediction(pred);
+        } catch (e) {
+            console.error("Error getting prediction", e);
+        }
     }
+    
+    setDetailsLoading(false);
+
   }, [match, matchDetails]);
 
   const BlinkingLight = () => (
@@ -134,7 +160,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
     }
     const shareData = {
       title: `${match.team1?.name} vs ${match.team2?.name} - fszscore`,
-      text: `🔥 ¡OJO CON ESTE DATO! 🔥\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📊 Pronóstico: ${predictionText} (Probabilidad: 50%)\n📈 Mira las estadísticas tipo StatsZone aquí:`,
+      text: prediction?.prediction_text ? `🔥 ¡OJO CON ESTE DATO! 🔥\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📊 Pronóstico: ${prediction.prediction_text}\n📈 Mira las estadísticas tipo StatsZone aquí:` : `Mira este partido en fszscore`,
       url: window.location.href,
     };
 
@@ -146,8 +172,8 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
         alert("¡Pronóstico copiado! Pégalo en tu WhatsApp.");
       }
     } catch (err) {
-      // No loguear el error para evitar el overlay de Next.js en desarrollo.
-      // El fallback al clipboard ya maneja la situación.
+       console.error("Share failed", err);
+       alert("No se pudo compartir. Intenta copiar el texto.");
     }
   };
 
@@ -166,20 +192,11 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
         
         <div className="flex-grow space-y-1 text-sm pl-2">
             <div className="flex items-center">
-                <span className={cn(isFavoriteTeam1 && "font-bold text-primary")}>{match.team1?.name ?? 'Equipo no encontrado'}</span>
-                {isFavoriteTeam1 && <BlinkingLight />}
+                <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
             </div>
             <div className="flex items-center">
-                <span className={cn(isFavoriteTeam2 && "font-bold text-primary")}>{match.team2?.name ?? 'Equipo no encontrado'}</span>
-                {isFavoriteTeam2 && <BlinkingLight />}
+                <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
             </div>
-            {isFavorite && (
-              <div className="mt-1 text-xs text-primary font-semibold flex items-center gap-1">
-                <Clock className="h-3 w-3"/>
-                <span>Pronóstico: {predictionText}</span>
-                <span>Prob: 50%</span>
-              </div>
-            )}
         </div>
         
         <div className="flex items-center justify-end w-[130px] flex-shrink-0 font-mono text-sm whitespace-nowrap pl-2">
@@ -208,27 +225,30 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
 
-            {isFavorite && (
+            {(detailsLoading || isFavorite) && (
                <button 
                 onClick={handleShare}
-                className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95"
+                disabled={!isFavorite}
+                className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <Share2 className="h-4 w-4" />
-                COMPARTIR PRONÓSTICO
+                {detailsLoading ? <Loader2 className="animate-spin" /> : 'COMPARTIR PRONÓSTICO'}
               </button>
             )}
+            
+            {detailsLoading && <Progress value={undefined} className="h-2 w-full mt-4" />}
 
             {isFavorite && (
               <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
-                  <p className="text-sm font-bold text-primary">
-                    Favorito a ganar: {favoriteTeamName}
+                  <p className="text-sm font-bold text-primary flex items-center">
+                    <span className={cn(isFavoriteTeam1 && "font-bold text-primary")}>{prediction.winner_name}</span>
+                    <BlinkingLight />
                   </p>
-                  <Progress value={50} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
-                  <p className="text-xs font-semibold text-primary">Predicción con 50% de probabilidad</p>
+                  <p className="text-xs text-primary/80">{prediction.prediction_text}</p>
               </div>
             )}
           </SheetHeader>
-          {detailsLoading ? (
+          {detailsLoading && !matchDetails ? (
               <div className="flex justify-center items-center h-64">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
@@ -353,15 +373,24 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     if (countryCompare !== 0) {
       return countryCompare;
     }
-    return dataA.leagueName.localeCompare(dataB.leagueName);
+    return dataA.leagueName.localeCompare(b.leagueName);
   });
-
+  
+  let matchesCount = 0;
+  let adShown = false;
 
   return (
     <div className="w-full space-y-4 mt-4">
       <PinnedMatchesComponent />
-      {sortedLeagues.map(([groupKey, { matches: leagueMatches, country, leagueName, flag }], index) => {
-        const showAd = index === 0 && adBanner;
+      {sortedLeagues.map(([groupKey, { matches: leagueMatches, country, leagueName, flag }]) => {
+        const adShouldBeShown = !adShown && adBanner && (matchesCount > 3 || sortedLeagues.length === 1);
+        const showAdAfterThisGroup = adShouldBeShown && leagueMatches.length > 0;
+        matchesCount += leagueMatches.length;
+
+        if (showAdAfterThisGroup) {
+            adShown = true;
+        }
+
         return (
           <React.Fragment key={groupKey}>
             <Card>
@@ -383,7 +412,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
                 </div>
               </CardContent>
             </Card>
-            {showAd && <div className="my-4">{adBanner}</div>}
+            {showAdAfterThisGroup && <div className="my-4">{adBanner}</div>}
           </React.Fragment>
         )
       })}
