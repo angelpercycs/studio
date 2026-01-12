@@ -213,7 +213,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             )}
         </div>
         
-        <div className="flex items-center justify-end w-auto flex-shrink-0 font-mono text-sm whitespace-nowrap pl-2 text-muted-foreground">
+        <div className="flex items-center justify-end w-auto flex-shrink-0 font-mono text-sm whitespace-nowrap px-4 text-muted-foreground">
             {match.odds ? (
                  <div className="flex justify-around items-center text-center gap-4">
                      <span className="w-10 text-center">{match.odds.home_odds?.toFixed(2)}</span>
@@ -223,7 +223,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             ) : <div className="w-[120px] h-4"></div>}
         </div>
 
-        <div className="flex flex-col items-center w-8 text-base ml-4 text-foreground">
+        <div className="flex flex-col items-center w-8 text-sm ml-4 text-foreground">
               <span className="font-bold">{match.team1_score ?? '-'}</span>
               <span className="font-bold">{match.team2_score ?? '-'}</span>
         </div>
@@ -371,8 +371,6 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     });
   }, [groupedByLeague]);
 
-  const allMatches = sortedLeagues.flatMap(([, leagueData]) => leagueData.matches);
-
   const PinnedMatchesComponent = () => (
     pinnedMatches && pinnedMatches.length > 0 && (
        <Card className="bg-primary/10">
@@ -396,33 +394,50 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
         </Card>
     )
   );
+  
+  let matchCount = 0;
 
-  return (
-    <div className="w-full space-y-4 mt-4">
-      <PinnedMatchesComponent />
-
-      {adBanner && <div className="p-2">{adBanner}</div>}
-
-      {sortedLeagues.map(([groupKey, leagueData]) => (
-        <Card key={groupKey}>
-          <CardContent className="p-0">
-            <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
-              {leagueData.flag && <img src={leagueData.flag} alt={leagueData.country} className="h-5 w-5" />}
-              {leagueData.country} - {leagueData.leagueName}
-            </div>
-            <div className="divide-y">
-              {leagueData.matches.map((match) => (
+  const renderedContent = sortedLeagues.map(([groupKey, leagueData], leagueIndex) => {
+    const leagueContent = (
+      <Card key={groupKey}>
+        <CardContent className="p-0">
+          <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
+            {leagueData.flag && <img src={leagueData.flag} alt={leagueData.country} className="h-5 w-5" />}
+            {leagueData.country} - {leagueData.leagueName}
+          </div>
+          <div className="divide-y">
+            {leagueData.matches.map((match) => {
+              matchCount++;
+              const matchRow = (
                 <MatchRow 
                   key={match.id}
                   match={match}
                   onPinToggle={onPinToggle}
                   isPinned={pinnedMatchIds?.has(match.id)}
                 />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              );
+              if (matchCount === 2 && adBanner) {
+                return (
+                  <React.Fragment key={`${match.id}-with-banner`}>
+                    {matchRow}
+                    <div className="p-2">{adBanner}</div>
+                  </React.Fragment>
+                );
+              }
+              return matchRow;
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    );
+    return leagueContent;
+  });
+
+
+  return (
+    <div className="w-full space-y-4 mt-4">
+      <PinnedMatchesComponent />
+      {renderedContent}
     </div>
   );
 };
