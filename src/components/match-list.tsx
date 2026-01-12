@@ -213,18 +213,19 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             )}
         </div>
         
-        <div className="flex items-center justify-end w-[130px] flex-shrink-0 font-mono text-sm whitespace-nowrap pl-2">
+        <div className="flex items-center justify-end w-auto flex-shrink-0 font-mono text-sm whitespace-nowrap pl-2 text-muted-foreground">
             {match.odds ? (
-                 <div className="flex justify-around items-center w-full text-center gap-2">
-                     <span className="text-center">{match.odds.home_odds?.toFixed(2)}</span>
-                     <span className="text-center">{match.odds.draw_odds?.toFixed(2)}</span>
-                     <span className="text-center">{match.odds.away_odds?.toFixed(2)}</span>
+                 <div className="flex justify-around items-center text-center gap-4">
+                     <span className="w-10 text-center">{match.odds.home_odds?.toFixed(2)}</span>
+                     <span className="w-10 text-center">{match.odds.draw_odds?.toFixed(2)}</span>
+                     <span className="w-10 text-center">{match.odds.away_odds?.toFixed(2)}</span>
                 </div>
-            ) : <div className="w-[80px] h-4"></div>}
-             <div className="flex flex-col items-center w-[40px] pl-2 text-base">
-                 <span className="font-bold">{match.team1_score ?? '-'}</span>
-                 <span className="font-bold">{match.team2_score ?? '-'}</span>
-            </div>
+            ) : <div className="w-[120px] h-4"></div>}
+        </div>
+
+        <div className="flex flex-col items-center w-8 text-base ml-4 text-foreground">
+              <span className="font-bold">{match.team1_score ?? '-'}</span>
+              <span className="font-bold">{match.team2_score ?? '-'}</span>
         </div>
 
       </div>
@@ -340,6 +341,38 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     );
   }
   
+  const groupedByLeague = useMemo(() => {
+    return matches.reduce((acc, match) => {
+        const countryName = match.league?.countries?.name || 'Unknown Country';
+        const leagueName = match.league?.name || 'Unknown League';
+        const groupKey = `${countryName}-${leagueName}`;
+
+        if (!acc[groupKey]) {
+            acc[groupKey] = {
+                matches: [],
+                country: countryName,
+                leagueName: leagueName,
+                flag: match.league?.countries?.flag || null
+            };
+        }
+        acc[groupKey].matches.push(match);
+        return acc;
+    }, {} as Record<string, { matches: any[], country: string, leagueName: string, flag: string | null }>);
+  }, [matches]);
+
+  const sortedLeagues = useMemo(() => {
+    return Object.entries(groupedByLeague).sort(([, dataA], [, dataB]) => {
+        if (dataA.country === 'Unknown Country' || dataB.country === 'Unknown Country') return dataA.leagueName.localeCompare(dataB.leagueName);
+        const countryCompare = dataA.country.localeCompare(dataB.country);
+        if (countryCompare !== 0) {
+            return countryCompare;
+        }
+        return dataA.leagueName.localeCompare(dataB.leagueName);
+    });
+  }, [groupedByLeague]);
+
+  const allMatches = sortedLeagues.flatMap(([, leagueData]) => leagueData.matches);
+
   const PinnedMatchesComponent = () => (
     pinnedMatches && pinnedMatches.length > 0 && (
        <Card className="bg-primary/10">
@@ -363,70 +396,33 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
         </Card>
     )
   );
-  
-  const groupedByLeague = matches.reduce((acc, match) => {
-    const countryName = match.league?.countries?.name || 'Unknown Country';
-    const leagueName = match.league?.name || 'Unknown League';
-    const groupKey = `${countryName}-${leagueName}`;
-
-    if (!acc[groupKey]) {
-      acc[groupKey] = {
-        matches: [],
-        country: countryName,
-        leagueName: leagueName,
-        flag: match.league?.countries?.flag || null
-      };
-    }
-    acc[groupKey].matches.push(match);
-    return acc;
-  }, {} as Record<string, { matches: any[], country: string, leagueName: string, flag: string | null }>);
-
-  const sortedLeagues = Object.entries(groupedByLeague).sort(([, dataA], [, dataB]) => {
-    if (dataA.country === 'Unknown Country' || dataB.country === 'Unknown Country') return dataA.leagueName.localeCompare(dataB.leagueName);
-    const countryCompare = dataA.country.localeCompare(dataB.country);
-    if (countryCompare !== 0) {
-      return countryCompare;
-    }
-    return dataA.leagueName.localeCompare(dataB.leagueName);
-  });
-  
-  const allMatches = sortedLeagues.flatMap(l => l[1].matches);
-  let adShown = false;
 
   return (
     <div className="w-full space-y-4 mt-4">
       <PinnedMatchesComponent />
-      
-      {sortedLeagues.map(([groupKey, leagueData]) => {
-        let lastRenderedLeague = "";
-        return (
-           <Card key={groupKey}>
-             <CardContent className="p-0">
-               <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
-                {leagueData.flag && <img src={leagueData.flag} alt={leagueData.country} className="h-5 w-5" />}
-                {leagueData.country} - {leagueData.leagueName}
-              </div>
-              <div className="divide-y">
-                {leagueData.matches.map((match, matchIndex) => {
-                  const adComponent = (adBanner && !adShown && (pinnedMatches?.length || 0) + matchIndex >= 1) ? adBanner : null;
-                   if (adComponent) adShown = true;
 
-                  return (
-                    <React.Fragment key={match.id}>
-                      <MatchRow 
-                          match={match}
-                          onPinToggle={onPinToggle}
-                          isPinned={pinnedMatchIds?.has(match.id)}
-                      />
-                      {adComponent && <div className="p-2">{adComponent}</div>}
-                    </React.Fragment>
-                  )
-                })}
-              </div>
-            </CardContent>
-           </Card>
-        )
-      })}
+      {adBanner && <div className="p-2">{adBanner}</div>}
+
+      {sortedLeagues.map(([groupKey, leagueData]) => (
+        <Card key={groupKey}>
+          <CardContent className="p-0">
+            <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
+              {leagueData.flag && <img src={leagueData.flag} alt={leagueData.country} className="h-5 w-5" />}
+              {leagueData.country} - {leagueData.leagueName}
+            </div>
+            <div className="divide-y">
+              {leagueData.matches.map((match) => (
+                <MatchRow 
+                  key={match.id}
+                  match={match}
+                  onPinToggle={onPinToggle}
+                  isPinned={pinnedMatchIds?.has(match.id)}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
