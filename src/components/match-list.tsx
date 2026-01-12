@@ -126,24 +126,16 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }
 
   const handleShare = async () => {
-    const predictionText = isFavoriteTeam1 ? 'Gana Local' : (isFavoriteTeam2 ? 'Gana Visita' : '');
-    
+    const predictionText = isFavoriteTeam1 ? 'Gana Local' : (isFavoriteTeam2 ? 'Gana Visita' : 'Empate');
     const shareData = {
-      title: `${match.team1?.name} vs ${match.team2?.name} - fszscore`,
-      text: `🔥 ¡OJO CON ESTE DATO! 🔥\n\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📊 Pronóstico: ${predictionText} (Probabilidad: 85%)\n\n📈 Mira las estadísticas tipo StatsZone aquí:`,
+      title: `${match.team1?.name} vs ${match.team2?.name}`,
+      text: `🔥 PRONÓSTICO: ${predictionText} (85%)\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📈 Estadísticas:`,
       url: window.location.href,
     };
-
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-        alert("¡Pronóstico copiado! Pégalo en tu WhatsApp.");
-      }
-    } catch (err) {
-      console.error("Error al compartir:", err);
-    }
+      if (navigator.share) { await navigator.share(shareData); } 
+      else { await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`); alert("¡Copiado!"); }
+    } catch (err) { console.error(err); }
   };
 
   return (
@@ -204,27 +196,22 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
             
+            <button 
+              onClick={(e) => { e.stopPropagation(); handleShare(); }}
+              className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-3 rounded-xl text-sm font-bold w-full shadow-lg hover:opacity-90"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
+              COMPARTIR PRONÓSTICO
+            </button>
+
             {(isFavorite) && (
-              <>
-                <button
-                  onClick={handleShare}
-                  className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95 w-full"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                    <polyline points="16 6 12 2 8 6"/>
-                    <line x1="12" x2="12" y1="2" y2="15"/>
-                  </svg>
-                  COMPARTIR PRONÓSTICO EN WHATSAPP
-                </button>
-                <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
-                    <p className="text-sm font-bold text-primary">
-                      Favorito a ganar: {favoriteTeamName}
-                    </p>
-                    <Progress value={85} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
-                    <p className="text-xs font-semibold text-primary">Predicción con 85% de probabilidad</p>
-                </div>
-              </>
+              <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
+                  <p className="text-sm font-bold text-primary">
+                    Favorito a ganar: {favoriteTeamName}
+                  </p>
+                  <Progress value={85} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
+                  <p className="text-xs font-semibold text-primary">Predicción con 85% de probabilidad</p>
+              </div>
             )}
           </SheetHeader>
           {detailsLoading ? (
