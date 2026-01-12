@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 
 export const revalidate = 1800; 
 
-const BASE_URL = 'https://www.fszscore.com';
+const BASE_URL = 'https://fszscore.com';
 
 function getDateFromParam(fecha: string): Date | null {
   const nowInLima = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
