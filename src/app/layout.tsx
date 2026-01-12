@@ -6,6 +6,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { Calendar, CalendarDays, Shield, Star } from 'lucide-react';
 import Script from 'next/script';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { UserProfile } from '@/components/user-profile';
 
 export const metadata: Metadata = {
   title: 'Fútbol Stats Zone',
@@ -43,24 +45,27 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="font-body antialiased">
-         <div className="flex min-h-screen flex-col bg-background text-foreground">
-            <main className="container mx-auto flex-grow px-4 py-8 md:py-12">
-              <header className="mb-8 flex flex-col items-center text-center gap-4">
-                <Link href="/" className="flex flex-col items-center gap-2">
-                  <Image
-                    src="/icon.svg"
-                    alt="App Icon"
-                    width={48}
-                    height={48}
-                    className="baby-blue-icon"
-                  />
-                  <div>
-                    <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-                      Fútbol Stats Zone - Pronósticos de Fútbol
-                    </h1>
-                  </div>
-                </Link>
-              </header>
+        <FirebaseClientProvider>
+          <div className="flex min-h-screen flex-col bg-background text-foreground">
+              <header className="container mx-auto flex items-center justify-between py-4">
+                  <Link href="/" className="flex items-center gap-4">
+                    <Image
+                      src="/icon.svg"
+                      alt="App Icon"
+                      width={48}
+                      height={48}
+                      className="baby-blue-icon"
+                    />
+                    <div>
+                      <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+                        Fútbol Stats Zone
+                      </h1>
+                       <p className="text-sm text-muted-foreground">Pronósticos de Fútbol</p>
+                    </div>
+                  </Link>
+                  <UserProfile />
+                </header>
+            <main className="container mx-auto flex-grow px-4 pb-8 md:pb-12">
 
               <h2 className="text-xl font-semibold mb-4 text-center">Encuentros y Estadísticas Profesionales (Tipo StatsZone)</h2>
 
@@ -129,6 +134,7 @@ export default function RootLayout({
               </div>
             </footer>
           </div>
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>
