@@ -91,55 +91,61 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const [prediction, setPrediction] = useState<MatchPredictionOutput | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
-  
-  const timeDisplay = match.match_date_iso 
-      ? new Date(match.match_date_iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
-      : '--:--';
-  
-  const isFavorite = prediction?.has_prediction && prediction.winner_name;
-  const isFavoriteTeam1 = isFavorite && prediction?.winner_name === match.team1?.name;
-  const isFavoriteTeam2 = isFavorite && prediction?.winner_name === match.team2?.name;
 
+  const timeDisplay = match.match_date_iso
+    ? new Date(match.match_date_iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+    : '--:--';
+
+  const isFavorite = match.favorite;
+  const isFavoriteTeam1 = isFavorite === 'team1';
+  const isFavoriteTeam2 = isFavorite === 'team2';
+  
   const handleOpenSheet = useCallback(async () => {
     setIsSheetOpen(true);
     if (matchDetails) return;
     
     setDetailsLoading(true);
     setDetailsError(null);
-    setPrediction(null);
 
-    const result = await getMatchStats(match);
-    
-    if (result.error) {
-      setDetailsError(result.error);
-      setDetailsLoading(false);
-      return;
-    } 
-    
-    setMatchDetails(result.data);
+    if (match.favorite && !prediction) {
+       const result = await getMatchStats(match);
+       if (result.error) {
+        setDetailsError(result.error);
+        setDetailsLoading(false);
+        return;
+       }
+       setMatchDetails(result.data);
 
-    if (result.data?.team1_standings && result.data?.team2_standings && result.data?.team1_last_3 && result.data?.team2_last_3 && result.data?.team1_last_3_home_away && result.data?.team2_last_3_home_away) {
-        try {
-            const predictionInput = {
-                team1Name: match.team1?.name,
-                team2Name: match.team2?.name,
-                team1_standings: result.data.team1_standings,
-                team2_standings: result.data.team2_standings,
-                team1_last_3: result.data.team1_last_3,
-                team2_last_3: result.data.team2_last_3,
-                team1_last_3_home_away: result.data.team1_last_3_home_away,
-                team2_last_3_home_away: result.data.team2_last_3_home_away,
-            };
-            const pred = await getMatchPrediction(predictionInput);
-            setPrediction(pred);
-        } catch (e) {
-            console.error("Error getting prediction", e);
+        if (result.data?.team1_standings && result.data?.team2_standings && result.data?.team1_last_3 && result.data?.team2_last_3 && result.data?.team1_last_3_home_away && result.data?.team2_last_3_home_away) {
+            try {
+                const predictionInput = {
+                    team1Name: match.team1?.name,
+                    team2Name: match.team2?.name,
+                    team1_standings: result.data.team1_standings,
+                    team2_standings: result.data.team2_standings,
+                    team1_last_3: result.data.team1_last_3,
+                    team2_last_3: result.data.team2_last_3,
+                    team1_last_3_home_away: result.data.team1_last_3_home_away,
+                    team2_last_3_home_away: result.data.team2_last_3_home_away,
+                };
+                const pred = await getMatchPrediction(predictionInput);
+                setPrediction(pred);
+            } catch (e) {
+                console.error("Error getting prediction", e);
+            }
+        }
+    } else {
+        const result = await getMatchStats(match);
+        if (result.error) {
+            setDetailsError(result.error);
+        } else {
+            setMatchDetails(result.data);
         }
     }
     
     setDetailsLoading(false);
 
-  }, [match, matchDetails]);
+  }, [match, matchDetails, prediction]);
 
   const BlinkingLight = () => (
     <div className="relative flex h-2 w-2 ml-2">
@@ -154,7 +160,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }
 
   const handleShare = async () => {
-    if (!isFavorite) {
+    if (!prediction?.has_prediction) {
       alert("Este partido no tiene un pronóstico claro para compartir.");
       return;
     }
@@ -192,19 +198,27 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
         
         <div className="flex-grow space-y-1 text-sm pl-2">
             <div className="flex items-center">
-                <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
+                <span className={cn(isFavoriteTeam1 && "font-bold text-primary")}>{match.team1?.name ?? 'Equipo no encontrado'}</span>
+                {isFavoriteTeam1 && <BlinkingLight />}
             </div>
             <div className="flex items-center">
-                <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
+                <span className={cn(isFavoriteTeam2 && "font-bold text-primary")}>{match.team2?.name ?? 'Equipo no encontrado'}</span>
+                 {isFavoriteTeam2 && <BlinkingLight />}
             </div>
+             {isFavorite && (
+                <div className="flex items-center gap-1.5 text-xs text-primary pt-1">
+                    <Clock className="h-3 w-3" />
+                    <span>Pronóstico: Gana {isFavoriteTeam1 ? 'Local' : 'Visitante'}</span>
+                </div>
+            )}
         </div>
         
         <div className="flex items-center justify-end w-[130px] flex-shrink-0 font-mono text-sm whitespace-nowrap pl-2">
             {match.odds ? (
                  <div className="flex justify-around items-center w-full text-center gap-2">
-                     <span className="text-center w-1/3">{match.odds.home_odds?.toFixed(2)}</span>
-                     <span className="text-center w-1/3">{match.odds.draw_odds?.toFixed(2)}</span>
-                     <span className="text-center w-1/3">{match.odds.away_odds?.toFixed(2)}</span>
+                     <span className="text-center">{match.odds.home_odds?.toFixed(2)}</span>
+                     <span className="text-center">{match.odds.draw_odds?.toFixed(2)}</span>
+                     <span className="text-center">{match.odds.away_odds?.toFixed(2)}</span>
                 </div>
             ) : <div className="w-[80px] h-4"></div>}
              <div className="flex flex-col items-center w-[40px] pl-2 text-base">
@@ -225,10 +239,10 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
 
-            {(detailsLoading || isFavorite) && (
+            {(detailsLoading || prediction?.has_prediction) && (
                <button 
                 onClick={handleShare}
-                disabled={!isFavorite}
+                disabled={!prediction?.has_prediction}
                 className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <Share2 className="h-4 w-4" />
@@ -238,10 +252,10 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             
             {detailsLoading && <Progress value={undefined} className="h-2 w-full mt-4" />}
 
-            {isFavorite && (
+            {prediction?.has_prediction && (
               <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
                   <p className="text-sm font-bold text-primary flex items-center">
-                    <span className={cn(isFavoriteTeam1 && "font-bold text-primary")}>{prediction.winner_name}</span>
+                    <span className={cn(prediction.winner_name === match.team1.name && "font-bold text-primary")}>{prediction.winner_name}</span>
                     <BlinkingLight />
                   </p>
                   <p className="text-xs text-primary/80">{prediction.prediction_text}</p>
@@ -376,53 +390,39 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     return dataA.leagueName.localeCompare(dataB.leagueName);
   });
   
-  const renderedContent: React.ReactNode[] = [];
   let matchesCount = 0;
   let adShown = false;
-  const adAfterMatchCount = 2; 
-
-  sortedLeagues.forEach(([groupKey, { matches: leagueMatches, country, leagueName, flag }]) => {
-    const leagueMatchRows: React.ReactNode[] = [];
-    
-    leagueMatches.forEach((match: any) => {
-      leagueMatchRows.push(
-        <MatchRow 
-          key={match.id} 
-          match={match}
-          onPinToggle={onPinToggle}
-          isPinned={pinnedMatchIds?.has(match.id)}
-        />
-      );
-      matchesCount++;
-
-      if (adBanner && !adShown && matchesCount >= adAfterMatchCount) {
-        leagueMatchRows.push(<div key={`ad-${match.id}`} className="my-4 px-2">{adBanner}</div>);
-        adShown = true;
-      }
-    });
-
-    renderedContent.push(
-      <Card key={groupKey}>
-        <CardContent className="p-0">
-          <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
-            {flag && <img src={flag} alt={country} className="h-5 w-5" />}
-            {country} - {leagueName}
-          </div>
-          <div>
-            <div className="divide-y">
-              {leagueMatchRows}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  });
-
 
   return (
     <div className="w-full space-y-4 mt-4">
       <PinnedMatchesComponent />
-      {renderedContent}
+      
+      {adBanner && (
+        <div className="my-4 px-2">
+            {adBanner}
+        </div>
+      )}
+
+      {sortedLeagues.map(([groupKey, leagueData]) => (
+        <Card key={groupKey}>
+          <CardContent className="p-0">
+            <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
+              {leagueData.flag && <img src={leagueData.flag} alt={leagueData.country} className="h-5 w-5" />}
+              {leagueData.country} - {leagueData.leagueName}
+            </div>
+            <div className="divide-y">
+              {leagueData.matches.map((match: any) => (
+                <MatchRow 
+                    key={match.id} 
+                    match={match}
+                    onPinToggle={onPinToggle}
+                    isPinned={pinnedMatchIds?.has(match.id)}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
