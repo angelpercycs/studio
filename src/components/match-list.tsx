@@ -208,7 +208,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
              {isFavorite && (
                 <div className="flex items-center gap-1.5 text-xs text-primary pt-1">
                     <Clock className="h-3 w-3" />
-                    <span>Pronóstico: Gana {isFavoriteTeam1 ? 'Local' : 'Visitante'}</span>
+                    <span>Pronóstico: Gana {isFavoriteTeam1 ? 'Local' : 'Visitante'} - Probabilidad al 50%</span>
                 </div>
             )}
         </div>
@@ -390,39 +390,43 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     return dataA.leagueName.localeCompare(dataB.leagueName);
   });
   
-  let matchesCount = 0;
+  const allMatches = sortedLeagues.flatMap(l => l[1].matches);
   let adShown = false;
 
   return (
     <div className="w-full space-y-4 mt-4">
       <PinnedMatchesComponent />
       
-      {adBanner && (
-        <div className="my-4 px-2">
-            {adBanner}
-        </div>
-      )}
+      {sortedLeagues.map(([groupKey, leagueData]) => {
+        let lastRenderedLeague = "";
+        return (
+           <Card key={groupKey}>
+             <CardContent className="p-0">
+               <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
+                {leagueData.flag && <img src={leagueData.flag} alt={leagueData.country} className="h-5 w-5" />}
+                {leagueData.country} - {leagueData.leagueName}
+              </div>
+              <div className="divide-y">
+                {leagueData.matches.map((match, matchIndex) => {
+                  const adComponent = (adBanner && !adShown && (pinnedMatches?.length || 0) + matchIndex >= 1) ? adBanner : null;
+                   if (adComponent) adShown = true;
 
-      {sortedLeagues.map(([groupKey, leagueData]) => (
-        <Card key={groupKey}>
-          <CardContent className="p-0">
-            <div className="p-4 font-bold flex items-center gap-2 border-b bg-muted/20">
-              {leagueData.flag && <img src={leagueData.flag} alt={leagueData.country} className="h-5 w-5" />}
-              {leagueData.country} - {leagueData.leagueName}
-            </div>
-            <div className="divide-y">
-              {leagueData.matches.map((match: any) => (
-                <MatchRow 
-                    key={match.id} 
-                    match={match}
-                    onPinToggle={onPinToggle}
-                    isPinned={pinnedMatchIds?.has(match.id)}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                  return (
+                    <React.Fragment key={match.id}>
+                      <MatchRow 
+                          match={match}
+                          onPinToggle={onPinToggle}
+                          isPinned={pinnedMatchIds?.has(match.id)}
+                      />
+                      {adComponent && <div className="p-2">{adComponent}</div>}
+                    </React.Fragment>
+                  )
+                })}
+              </div>
+            </CardContent>
+           </Card>
+        )
+      })}
     </div>
   );
 };
