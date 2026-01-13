@@ -62,7 +62,7 @@ export function LoginForm() {
         </h1>
         <p className="text-muted-foreground text-sm">
           {isSignUp
-            ? "Crea una cuenta para guardar tus pronósticos."
+            ? "Regístrate para crear y guardar tus pronósticos personales. Solo tú puedes verlos."
             : "Inicia sesión para ver tus pronósticos."}
         </p>
       </div>
