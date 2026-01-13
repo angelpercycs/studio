@@ -30,10 +30,6 @@ export function BetSlip() {
     const { toast } = useToast();
     const [amount, setAmount] = useState<number | string>('');
 
-    const potentialWinnings = (typeof amount === 'number' && amount > 0) 
-        ? (amount * totalOdds).toFixed(2)
-        : '0.00';
-
     const handleSaveSlip = async () => {
         if (!user || !firestore) {
             toast({
@@ -139,36 +135,10 @@ export function BetSlip() {
                             <p className="text-muted-foreground">No has seleccionado ningún pronóstico.</p>
                         </div>
                     )}
-                    <SheetFooter className="p-4 border-t bg-background space-y-4">
-                         <div className="grid grid-cols-2 text-sm">
-                            <div className="font-semibold">Total de Selecciones:</div>
-                            <div className="text-right font-bold">{totalSelections}</div>
-                            <div className="font-semibold">Cuota Total:</div>
-                            <div className="text-right font-bold">{totalOdds.toFixed(2)}</div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                             <label htmlFor="amount" className="text-sm font-medium">Monto de Apuesta (S/.)</label>
-                             <Input 
-                                id="amount" 
-                                type="number" 
-                                placeholder="0.00" 
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                            />
-                        </div>
-                       
-                        <div className="text-center p-3 rounded-md bg-muted/50">
-                            <div className="text-sm text-muted-foreground">Ganancia Potencial</div>
-                             <div className="text-2xl font-bold text-primary">S/. {potentialWinnings}</div>
-                        </div>
-                        
-                        <div className="flex gap-2 w-full">
-                           <Button variant="outline" onClick={clearSelections} className="w-full">Limpiar</Button>
-                           <Button onClick={handleSaveSlip} className="w-full">Guardar Cupón</Button>
-                        </div>
+                    <SheetFooter className="p-4 border-t bg-background flex-row justify-end space-x-2">
+                        <Button onClick={handleSaveSlip} className="w-full">Guardar Cupón</Button>
                         <SheetClose asChild>
-                            <Button variant="ghost" className="w-full">Cerrar</Button>
+                            <Button variant="outline" className="w-full">Cerrar</Button>
                         </SheetClose>
                     </SheetFooter>
                 </SheetContent>
