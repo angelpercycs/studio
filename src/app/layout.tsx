@@ -4,12 +4,13 @@ import { Toaster } from '@/components/ui/toaster';
 import Image from 'next/image';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
-import { Calendar, CalendarDays, Shield, Star } from 'lucide-react';
+import { Calendar, CalendarDays, Shield, Star, Coffee } from 'lucide-react';
 import Script from 'next/script';
 import { UserProfile } from '@/components/user-profile';
 import { FirebaseClientProvider } from '@/firebase';
 import { BetSlipProvider } from '@/context/BetSlipContext';
 import { BetSlip } from '@/components/bet-slip';
+import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
   title: 'Fútbol Stats Zone',
@@ -66,7 +67,14 @@ export default function RootLayout({
                     <p className="text-sm text-muted-foreground">Pronósticos de Fútbol</p>
                   </div>
                 </Link>
-                <UserProfile />
+                <div className="flex items-center gap-4">
+                  <Link href="https://ko-fi.com/futbolstatszone" target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline">
+                      <Coffee className="mr-2 h-4 w-4" /> Apóyame
+                    </Button>
+                  </Link>
+                  <UserProfile />
+                </div>
               </header>
               <main className="container mx-auto flex-grow px-4 pb-8 md:pb-12">
 
