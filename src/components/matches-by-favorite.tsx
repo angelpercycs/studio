@@ -236,7 +236,7 @@ export function MatchesByFavorite() {
                       <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
                       <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
                   </div>
-                  <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronostico disponibles!</AlertTitle>
+                  <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico!</AlertTitle>
                 </div>
                 <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
                   {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
