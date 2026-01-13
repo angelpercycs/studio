@@ -66,6 +66,12 @@ export function UserProfile() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <Link href="/mis-pronosticos">
+            <DropdownMenuItem>
+                Mis Pronósticos
+            </DropdownMenuItem>
+        </Link>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           Cerrar sesión
         </DropdownMenuItem>
