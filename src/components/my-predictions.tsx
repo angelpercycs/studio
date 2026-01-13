@@ -217,7 +217,7 @@ export function MyPredictions() {
                                             <TableRow>
                                                 <TableHead>Partido</TableHead>
                                                 <TableHead>Pronóstico</TableHead>
-                                                <TableHead>Cuota</TableHead>
+                                                <TableHead>Valor</TableHead>
                                                 <TableHead>Estado del partido</TableHead>
                                                 <TableHead>Estado</TableHead>
                                             </TableRow>
