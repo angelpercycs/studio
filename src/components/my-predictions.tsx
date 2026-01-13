@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Share2 } from "lucide-react";
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -62,6 +62,40 @@ export function MyPredictions() {
         if (prediction === 'team1') return `Gana ${match.team1?.name || 'Local'}`;
         if (prediction === 'team2') return `Gana ${match.team2?.name || 'Visitante'}`;
         return 'Empate';
+    };
+
+     const handleShare = async (slip: any) => {
+        if (!slip || !slip.selections) return;
+        
+        const selectionLines = slip.selections.map((sel: any) => {
+            const teams = sel.match ? `${sel.match.team1?.name || 'Local'} vs ${sel.match.team2?.name || 'Visitante'}` : 'Partido no especificado';
+            const predictionText = renderPrediction(sel);
+            return `- ${predictionText} (${teams})`;
+        }).join('\n');
+
+        const shareText = `Mi Pronóstico (Valor: ${slip.totalOdds.toFixed(2)}):\n${selectionLines}\n\nPronóstico deportivo (opinión personal).\nNo es una apuesta ni implica dinero real.`;
+
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: 'Mi Pronóstico Deportivo',
+                    text: shareText,
+                });
+            } else {
+                await navigator.clipboard.writeText(shareText);
+                toast({
+                    title: "¡Copiado!",
+                    description: "Tu pronóstico ha sido copiado al portapapeles.",
+                });
+            }
+        } catch (error) {
+            console.error("Error al compartir:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "No se pudo compartir el pronóstico.",
+            });
+        }
     };
 
 
@@ -215,7 +249,11 @@ export function MyPredictions() {
                                             })}
                                         </TableBody>
                                     </Table>
-                                    <div className="flex justify-end mt-4">
+                                    <div className="flex justify-end gap-2 mt-4">
+                                        <Button variant="outline" size="sm" onClick={() => handleShare(slip)}>
+                                            <Share2 className="mr-2 h-4 w-4" />
+                                            Compartir
+                                        </Button>
                                         <Button variant="destructive" size="sm" onClick={() => handleDelete(slip.id)}>
                                             <Trash2 className="mr-2 h-4 w-4" />
                                             Eliminar pronóstico
