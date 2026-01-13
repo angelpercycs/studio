@@ -38,7 +38,7 @@ export function MyPredictions() {
         deleteDocumentNonBlocking(slipRef);
         toast({
             title: "Pronóstico Eliminado",
-            description: "Tu combinada ha sido eliminada.",
+            description: "Tu pronóstico múltiple ha sido eliminado.",
         });
     };
 
@@ -86,7 +86,7 @@ export function MyPredictions() {
             <Card>
                 <CardHeader>
                     <CardTitle>Inicia Sesión</CardTitle>
-                    <CardDescription>Para ver tus pronósticos guardados, por favor, inicia sesión.</CardDescription>
+                    <CardDescription>Para ver tu bitácora de pronósticos, por favor, inicia sesión.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Button asChild>
@@ -117,14 +117,14 @@ export function MyPredictions() {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Mis Pronósticos</CardTitle>
-                    <CardDescription>Aquí aparecerán tus pronósticos combinados una vez que los guardes.</CardDescription>
+                    <CardTitle>Mi Bitácora de Pronósticos</CardTitle>
+                    <CardDescription>Aquí aparecerán tus pronósticos múltiples una vez que los guardes.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">
-                        <p>Aún no tienes pronósticos guardados.</p>
+                        <p>Aún no tienes pronósticos en tu bitácora.</p>
                         <Button asChild variant="link" className="mt-2">
-                           <Link href="/">¡Haz tu primer pronóstico!</Link>
+                           <Link href="/">¡Crea tu primer pronóstico!</Link>
                         </Button>
                     </div>
                 </CardContent>
@@ -136,14 +136,14 @@ export function MyPredictions() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Mis Pronósticos Guardados</CardTitle>
-                <CardDescription>Revisa tu historial de pronósticos combinados.</CardDescription>
+                <CardTitle>Mi Bitácora de Pronósticos</CardTitle>
+                <CardDescription>Revisa tu historial de pronósticos múltiples.</CardDescription>
             </CardHeader>
             <CardContent>
                  <Accordion type="single" collapsible className="w-full space-y-4">
                     {betSlips.map((slip: any) => {
                          if (!slip.selections || !Array.isArray(slip.selections)) {
-                            return null; // Skip rendering if selections are invalid
+                            return null;
                         }
 
                         const allSelectionsFinished = slip.selections.every((s: any) => getSelectionStatus(s) !== 'pending');
@@ -155,7 +155,7 @@ export function MyPredictions() {
                             : 'pending';
 
                         const statusBadge = {
-                            pending: <Badge variant="secondary">Pendiente</Badge>,
+                            pending: <Badge variant="secondary">Por jugar</Badge>,
                             won: <Badge className="bg-green-600">Acertado</Badge>,
                             lost: <Badge variant="destructive">Fallado</Badge>,
                         }[overallStatus];
@@ -170,7 +170,7 @@ export function MyPredictions() {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className='text-right'>
-                                                <div className="font-semibold text-sm">Cuota Total</div>
+                                                <div className="font-semibold text-sm">Valor total (referencial)</div>
                                                 <div className="text-lg font-bold text-primary">{slip.totalOdds.toFixed(2)}</div>
                                             </div>
                                             {statusBadge}
@@ -184,7 +184,7 @@ export function MyPredictions() {
                                                 <TableHead>Partido</TableHead>
                                                 <TableHead>Pronóstico</TableHead>
                                                 <TableHead>Cuota</TableHead>
-                                                <TableHead>Resultado</TableHead>
+                                                <TableHead>Estado del partido</TableHead>
                                                 <TableHead>Estado</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -192,7 +192,7 @@ export function MyPredictions() {
                                             {slip.selections.map((sel: any, selIdx: number) => {
                                                 const selectionStatus = getSelectionStatus(sel);
                                                 const selectionStatusBadge = {
-                                                    pending: <Badge variant="secondary">Pendiente</Badge>,
+                                                    pending: <Badge variant="secondary">Por jugar</Badge>,
                                                     won: <Badge className="bg-green-600">Acertado</Badge>,
                                                     lost: <Badge variant="destructive">Fallado</Badge>,
                                                 }[selectionStatus];
@@ -207,7 +207,7 @@ export function MyPredictions() {
                                                         <TableCell>
                                                             {sel.match && sel.match.team1_score !== null && sel.match.team2_score !== null 
                                                                 ? `${sel.match.team1_score} - ${sel.match.team2_score}` 
-                                                                : 'Pendiente'}
+                                                                : 'Por jugar'}
                                                         </TableCell>
                                                         <TableCell>{selectionStatusBadge}</TableCell>
                                                     </TableRow>
@@ -218,7 +218,7 @@ export function MyPredictions() {
                                     <div className="flex justify-end mt-4">
                                         <Button variant="destructive" size="sm" onClick={() => handleDelete(slip.id)}>
                                             <Trash2 className="mr-2 h-4 w-4" />
-                                            Eliminar Combinada
+                                            Eliminar pronóstico
                                         </Button>
                                     </div>
                                 </AccordionContent>
