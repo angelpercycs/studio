@@ -1,1 +1,167 @@
-{}
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Match Tracker application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "googleId": {
+          "type": "string",
+          "description": "The unique identifier provided by Google for the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        }
+      },
+      "required": [
+        "id",
+        "googleId",
+        "email",
+        "name"
+      ]
+    },
+    "Match": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Match",
+      "type": "object",
+      "description": "Represents a match between two teams.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the match entity."
+        },
+        "team1": {
+          "type": "string",
+          "description": "Name of the first team."
+        },
+        "team2": {
+          "type": "string",
+          "description": "Name of the second team."
+        },
+        "scoreTeam1": {
+          "type": "number",
+          "description": "Score of the first team."
+        },
+        "scoreTeam2": {
+          "type": "number",
+          "description": "Score of the second team."
+        },
+        "matchDate": {
+          "type": "string",
+          "description": "Date and time of the match.",
+          "format": "date-time"
+        },
+        "leagueId": {
+          "type": "string",
+          "description": "Reference to League. (Relationship: League 1:N Match)"
+        }
+      },
+      "required": [
+        "id",
+        "team1",
+        "team2",
+        "matchDate",
+        "leagueId"
+      ]
+    },
+    "League": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "League",
+      "type": "object",
+      "description": "Represents a sports league.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the league entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the league."
+        },
+        "country": {
+          "type": "string",
+          "description": "Country where the league is based."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "country"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. Access is restricted to the user identified by {userId}.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/leagues/{leagueId}",
+        "definition": {
+          "entityName": "League",
+          "schema": {
+            "$ref": "#/backend/entities/League"
+          },
+          "description": "Stores league information. Publicly accessible for read, but restricted write access.",
+          "params": [
+            {
+              "name": "leagueId",
+              "description": "The unique identifier for the league."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/leagues/{leagueId}/matches/{matchId}",
+        "definition": {
+          "entityName": "Match",
+          "schema": {
+            "$ref": "#/backend/entities/Match"
+          },
+          "description": "Stores match data associated with a specific league. Access control is based on league membership (if applicable).",
+          "params": [
+            {
+              "name": "leagueId",
+              "description": "The unique identifier for the league."
+            },
+            {
+              "name": "matchId",
+              "description": "The unique identifier for the match."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to be secure, scalable, and easily debuggable, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC, and QAPs. User data is stored under `/users/{userId}` for private access. Leagues are stored in a top-level `/leagues` collection. Matches, which are related to leagues in a 1:N relationship, are stored in a subcollection `/leagues/{leagueId}/matches`. This design supports listing matches by league securely. Authorization Independence is achieved because access to matches depends only on the user's authentication status and potentially denormalized league membership, avoiding `get()` calls to parent documents during rule evaluation.  QAPs are supported via structural segregation, keeping data with different access requirements in separate collections.  Specifically, user data is separated from league and match data.  Global roles, should they be needed in the future, can be added via dedicated collections like `/roles_admin/{uid}`."
+  }
+}
