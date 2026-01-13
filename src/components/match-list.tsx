@@ -3,7 +3,6 @@
 import * as React from "react";
 import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Loader2, Pin, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -11,6 +10,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Progress } from "./ui/progress";
 import { getMatchStats } from "@/app/actions/getRoundData";
 import { cn } from "@/lib/utils";
+import { useBetSlip } from "@/context/BetSlipContext";
+import { useUser } from "@/firebase";
+import { Button } from "./ui/button";
+import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "./ui/table";
 
 
 const MatchDaySkeleton = () => (
@@ -21,16 +24,48 @@ const MatchDaySkeleton = () => (
   </div>
 );
 
-const StatsSkeleton = () => (
-    <div className="space-y-6 p-4">
-        {[...Array(3)].map((_, i) => (
-            <div key={i} className="space-y-2">
-                <Skeleton className="h-6 w-1/2 rounded" />
-                <Skeleton className="h-24 w-full rounded-lg" />
+const PredictionControls = ({ match }: { match: any }) => {
+    const { addSelection, selections } = useBetSlip();
+    const { user } = useUser();
+    
+    const handlePrediction = (prediction: 'team1' | 'team2' | 'draw', odds: number) => {
+        if (!user) {
+             // Optionally, show a toast or modal to prompt login
+            return;
+        }
+        addSelection({
+            matchId: match.id,
+            match: match,
+            prediction,
+            odds,
+        });
+    };
+
+    const getButtonClass = (prediction: 'team1' | 'team2' | 'draw') => {
+        const currentSelection = selections.find(s => s.matchId === match.id);
+        if (currentSelection && currentSelection.prediction === prediction) {
+            return "bg-primary text-primary-foreground";
+        }
+        return "bg-muted/50 hover:bg-muted";
+    };
+
+    if (!match.odds) {
+        return (
+             <div className="sm:flex space-x-2 text-xs text-center text-muted-foreground w-36 justify-center items-center">
+                Cuotas no disponibles
             </div>
-        ))}
-    </div>
-);
+        )
+    }
+
+    return (
+        <div className="sm:flex space-x-1 text-sm text-muted-foreground w-36">
+            <Button size="sm" className={cn("flex-1", getButtonClass('team1'))} onClick={() => handlePrediction('team1', match.odds.home_odds)}>{match.odds.home_odds}</Button>
+            <Button size="sm" className={cn("flex-1", getButtonClass('draw'))} onClick={() => handlePrediction('draw', match.odds.draw_odds)}>{match.odds.draw_odds}</Button>
+            <Button size="sm" className={cn("flex-1", getButtonClass('team2'))} onClick={() => handlePrediction('team2', match.odds.away_odds)}>{match.odds.away_odds}</Button>
+        </div>
+    );
+};
+
 
 const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { title: string, homeStats: any, awayStats: any, homeName: string, awayName: string }) => {
     if (!homeStats || !awayStats) {
@@ -139,7 +174,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }
   return (
     <>
-      <div onClick={handleOpenSheet} className="flex items-center w-full px-4 py-3 hover:bg-muted/50 cursor-pointer group">
+      <div className="flex items-center w-full px-4 py-3 group">
         {onPinToggle && (
            <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center -ml-2">
             <div className={cn(
@@ -149,7 +184,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
           </button>
         )}
         <div className="w-16 text-muted-foreground text-center text-sm">{timeDisplay}</div>
-        <div className="flex-grow space-y-1 text-sm">
+        <div onClick={handleOpenSheet} className="flex-grow space-y-1 text-sm cursor-pointer hover:bg-muted/50 rounded p-2">
             <div className="flex justify-between items-center">
                 <div className="flex-grow text-left flex items-center">
                     <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
@@ -171,13 +206,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             )}
         </div>
         
-        {match.odds && (
-            <div className="sm:flex space-x-4 text-sm text-muted-foreground mx-4">
-                <span>{match.odds.home_odds}</span>
-                <span>{match.odds.draw_odds}</span>
-                <span>{match.odds.away_odds}</span>
-            </div>
-        )}
+        <PredictionControls match={match} />
 
         <div className="flex flex-col items-center w-8 text-sm font-bold ml-4 text-foreground">
             <span>{match.team1_score ?? '-'}</span>
