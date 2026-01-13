@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo }from 'react';
 import { useCollection } from "@/firebase";
 import { useFirestore, useUser } from "@/firebase/hooks";
 import { collection, orderBy, query } from "firebase/firestore";
@@ -18,13 +18,14 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { Badge } from './ui/badge';
 import Link from 'next/link';
+import { useMemoFirebase } from '@/firebase/provider';
 
 export function MyPredictions() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
 
-    const betSlipsQuery = useMemo(() => {
+    const betSlipsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, `users/${user.uid}/bet_slips`), orderBy('createdAt', 'desc'));
     }, [user, firestore]);
