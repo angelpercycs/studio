@@ -117,7 +117,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
     const predictionText = isFavoriteTeam1 ? 'Gana Local' : (isFavoriteTeam2 ? 'Gana Visita' : 'Empate');
     const shareData = {
       title: `${match.team1?.name} vs ${match.team2?.name}`,
-      text: `🔥 PRONÓSTICO: ${predictionText} (85%)\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📈 Estadísticas:`,
+      text: `🔥 PRONÓSTICO: ${predictionText} (50%)\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📈 Estadísticas:`,
       url: window.location.href,
     };
     try {
@@ -166,7 +166,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
               <div className="mt-2 text-xs text-primary font-semibold flex items-center gap-2">
                 <ShieldCheck className="h-3 w-3"/>
                 <span>Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}</span>
-                <span>Probabilidad: 85%</span>
+                <span>Probabilidad: 50%</span>
               </div>
             )}
         </div>
@@ -208,8 +208,8 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                   <p className="text-sm font-bold text-primary">
                     Favorito a ganar: {favoriteTeamName}
                   </p>
-                  <Progress value={85} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
-                  <p className="text-xs font-semibold text-primary">Predicción con 85% de probabilidad</p>
+                  <Progress value={50} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
+                  <p className="text-xs font-semibold text-primary">Predicción con 50% de probabilidad</p>
               </div>
             )}
           </SheetHeader>
