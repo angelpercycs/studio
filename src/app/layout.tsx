@@ -111,6 +111,9 @@ export default function RootLayout({
                       <Link href="/politica-de-privacidad" className="ml-4 underline hover:text-foreground">Política de Privacidad</Link>
                       <Link href="/terminos-y-condiciones" className="ml-4 underline hover:text-foreground">Términos y Condiciones</Link>
                     </div>
+                    <p className="mb-2 font-semibold text-foreground">
+                        Los valores mostrados son solo referencias estadísticas y no representan apuestas ni pagos.
+                    </p>
                     <p className="mb-2">
                     Fútbol Stats Zone es un sitio independiente y no está afiliado, patrocinado ni autorizado por ninguna liga, federación, club o entidad oficial mencionada en este sitio.
                     </p>
