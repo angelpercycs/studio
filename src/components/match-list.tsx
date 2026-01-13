@@ -11,7 +11,7 @@ import { Progress } from "./ui/progress";
 import { getMatchStats } from "@/app/actions/getRoundData";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/context/BetSlipContext";
-import { useUser } from "@/firebase";
+import { useUser } from "@/firebase/hooks";
 import { Button } from "./ui/button";
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "./ui/table";
 

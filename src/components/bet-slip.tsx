@@ -8,9 +8,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Trash2 } from 'lucide-react';
 import { useBetSlip } from '@/context/BetSlipContext';
-import { useUser, addDocumentNonBlocking } from '@/firebase';
+import { useUser } from '@/firebase/hooks';
+import { addDocumentNonBlocking } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore } from '@/firebase/hooks';
 import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 
@@ -54,8 +55,8 @@ export function BetSlip() {
                 selections: selections.map(s => ({
                     matchId: s.matchId,
                     match: { 
-                        team1: s.match.team1?.name,
-                        team2: s.match.team2?.name,
+                        team1: { name: s.match.team1?.name },
+                        team2: { name: s.match.team2?.name },
                         team1_score: s.match.team1_score,
                         team2_score: s.match.team2_score,
                     },
@@ -136,7 +137,7 @@ export function BetSlip() {
                         </div>
                     )}
                     <SheetFooter className="p-4 border-t bg-background flex-row justify-end space-x-2">
-                        <Button onClick={handleSaveSlip} className="w-full">Guardar Cupón</Button>
+                        <Button onClick={handleSaveSlip} className="w-full">Guardar</Button>
                         <SheetClose asChild>
                             <Button variant="outline" className="w-full">Cerrar</Button>
                         </SheetClose>

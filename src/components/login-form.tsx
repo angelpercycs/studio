@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, initiateEmailSignIn, initiateEmailSignUp, initiateSocialSignIn } from "@/firebase";
+import { initiateEmailSignIn, initiateEmailSignUp, initiateSocialSignIn } from "@/firebase";
+import { useAuth } from "@/firebase/hooks";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -18,6 +19,7 @@ export function LoginForm() {
 
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) return;
     try {
       if (isSignUp) {
         await initiateEmailSignUp(auth, email, password);
@@ -35,6 +37,7 @@ export function LoginForm() {
   };
 
   const handleSocialLogin = async (provider: "google.com") => {
+    if (!auth) return;
     try {
       const result = await initiateSocialSignIn(auth, provider);
       if (result.user) {

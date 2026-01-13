@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth } from "@/firebase/hooks";
 import { signOut } from "firebase/auth";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -29,7 +29,9 @@ export function UserProfile() {
   const auth = useAuth();
 
   const handleSignOut = () => {
-    signOut(auth);
+    if (auth) {
+      signOut(auth);
+    }
   };
 
   if (isUserLoading) {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from 'react';
-import { useUser, useCollection } from "@/firebase";
-import { useFirestore } from "@/firebase/provider";
+import { useCollection } from "@/firebase";
+import { useFirestore, useUser } from "@/firebase/hooks";
 import { collection, orderBy, query } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -204,9 +204,9 @@ export function MyPredictions() {
                                                         <TableCell className="font-semibold">{renderPrediction(sel)}</TableCell>
                                                         <TableCell>{sel.odds.toFixed(2)}</TableCell>
                                                         <TableCell>
-                                                            {sel.match?.team1_score !== null && sel.match?.team2_score !== null 
+                                                            {sel.match && sel.match.team1_score !== null && sel.match.team2_score !== null 
                                                                 ? `${sel.match.team1_score} - ${sel.match.team2_score}` 
-                                                                : '-'}
+                                                                : 'Pendiente'}
                                                         </TableCell>
                                                         <TableCell>{selectionStatusBadge}</TableCell>
                                                     </TableRow>

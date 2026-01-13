@@ -8,7 +8,7 @@ import {
   useMemo,
   useCallback,
 } from 'react';
-import { useUser } from '@/firebase';
+import { useUser } from '@/firebase/hooks';
 
 interface MatchSelection {
   matchId: string;
