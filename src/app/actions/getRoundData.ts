@@ -662,3 +662,34 @@ export async function getTeamMatches(teamId: string, leagueId: string, season: s
         return { data: null, error: `An unexpected error occurred: ${e.message}` };
     }
 }
+
+export async function getMatchesByIds(matchIds: string[]) {
+    if (!matchIds || matchIds.length === 0) {
+        return { data: {}, error: null };
+    }
+    try {
+        const { data, error } = await supabase
+            .from('matches')
+            .select(`
+                id,
+                team1_score,
+                team2_score
+            `)
+            .in('id', matchIds);
+
+        if (error) {
+            console.error('Error fetching matches by IDs:', error);
+            return { data: null, error: `Error de Supabase: ${error.message}` };
+        }
+
+        const matchesMap = data.reduce((acc: Record<string, any>, match: any) => {
+            acc[match.id] = match;
+            return acc;
+        }, {});
+
+        return { data: matchesMap, error: null };
+    } catch (e: any) {
+        console.error('Unexpected error in getMatchesByIds:', e);
+        return { data: null, error: `An unexpected error occurred: ${e.message}` };
+    }
+}

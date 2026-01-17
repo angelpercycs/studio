@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo }from 'react';
+import { useMemo, useState, useEffect }from 'react';
 import { useCollection } from "@/firebase";
 import { useFirestore, useUser } from "@/firebase/hooks";
 import { collection, orderBy, query } from "firebase/firestore";
@@ -19,6 +19,7 @@ import { AlertCircle } from 'lucide-react';
 import { Badge } from './ui/badge';
 import Link from 'next/link';
 import { useMemoFirebase } from '@/firebase/provider';
+import { getMatchesByIds } from '@/app/actions/getRoundData';
 
 export function MyPredictions() {
     const { user, isUserLoading } = useUser();
@@ -31,6 +32,52 @@ export function MyPredictions() {
     }, [user, firestore]);
 
     const { data: betSlips, isLoading: slipsLoading, error: slipsError } = useCollection(betSlipsQuery);
+
+    const [freshMatchesData, setFreshMatchesData] = useState<Record<string, any>>({});
+    const [isFetchingMatches, setIsFetchingMatches] = useState(false);
+
+    useEffect(() => {
+        if (betSlips && betSlips.length > 0) {
+            const fetchFreshData = async () => {
+                setIsFetchingMatches(true);
+                const allMatchIds = betSlips.flatMap(slip => 
+                    slip.selections?.map((sel: any) => sel.matchId) ?? []
+                );
+                const uniqueMatchIds = [...new Set(allMatchIds.filter(id => id))];
+
+                if (uniqueMatchIds.length > 0) {
+                    const { data } = await getMatchesByIds(uniqueMatchIds);
+                    if (data) {
+                        setFreshMatchesData(data);
+                    }
+                }
+                setIsFetchingMatches(false);
+            };
+            fetchFreshData();
+        }
+    }, [betSlips]);
+
+    const enrichedBetSlips = useMemo(() => {
+        if (!betSlips) return null;
+        return betSlips.map(slip => {
+            if (!slip.selections) return slip;
+            const enrichedSelections = slip.selections.map((sel: any) => {
+                const freshMatch = freshMatchesData[sel.matchId];
+                if (freshMatch) {
+                    return {
+                        ...sel,
+                        match: {
+                            ...sel.match,
+                            team1_score: freshMatch.team1_score,
+                            team2_score: freshMatch.team2_score,
+                        }
+                    };
+                }
+                return sel;
+            });
+            return { ...slip, selections: enrichedSelections };
+        });
+    }, [betSlips, freshMatchesData]);
 
     const handleDelete = (slipId: string) => {
         if (!user || !firestore) return;
@@ -99,7 +146,7 @@ export function MyPredictions() {
     };
 
 
-    if (isUserLoading || slipsLoading) {
+    if (isUserLoading || slipsLoading || isFetchingMatches) {
         return (
              <Card>
                 <CardHeader>
@@ -147,7 +194,7 @@ export function MyPredictions() {
         )
     }
 
-    if (!betSlips || betSlips.length === 0) {
+    if (!enrichedBetSlips || enrichedBetSlips.length === 0) {
         return (
             <Card>
                 <CardHeader>
@@ -175,7 +222,7 @@ export function MyPredictions() {
             </CardHeader>
             <CardContent>
                  <Accordion type="single" collapsible className="w-full space-y-4">
-                    {betSlips.map((slip: any) => {
+                    {enrichedBetSlips.map((slip: any) => {
                          if (!slip.selections || !Array.isArray(slip.selections)) {
                             return null;
                         }
