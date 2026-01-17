@@ -41,13 +41,11 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
   const canonicalUrl = `${BASE_URL}/partidos/${fecha}`;
 
   if (fecha === 'ayer') {
-    fechaText = 'de Ayer';
-    title = `Pronósticos de Fútbol de Ayer - Fútbol Stats Zone`;
-    description = `Resultados y análisis de los partidos de fútbol de ayer. Consulta las estadísticas detalladas de las principales ligas.`;
+    title = `Resultados y Pronósticos de Fútbol de Ayer | Fútbol Stats Zone`;
+    description = `Revisa los resultados y analiza las estadísticas de los partidos de fútbol de ayer. Todos los datos de las principales ligas.`;
   } else if (fecha === 'manana') {
-    fechaText = 'de Mañana';
-    title = `Pronósticos de Fútbol para Mañana - Fútbol Stats Zone`;
-    description = `Adelántate con los pronósticos y estadísticas de fútbol para los partidos de mañana. Análisis detallado y equipos favoritos.`;
+    title = `Pronósticos y partidos de fútbol de mañana | Estadísticas completas`;
+    description = `Descubre los partidos de fútbol de mañana con pronósticos y estadísticas detalladas. Analiza equipos y toma mejores decisiones.`;
   } else {
     fechaText = format(date, "d 'de' MMMM", { locale: es });
     const fechaTitlePart = fechaText.charAt(0).toUpperCase() + fechaText.slice(1);
