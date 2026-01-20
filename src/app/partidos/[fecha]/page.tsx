@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: { params: { fecha: string } }
     title = `Pronósticos y partidos de fútbol de mañana | Estadísticas completas`;
     description = `Descubre los partidos de fútbol de mañana con pronósticos y estadísticas detalladas. Analiza equipos y toma mejores decisiones.`;
   } else {
-    fechaText = format(date, "d 'de' MMMM", { locale: es });
+    fechaText = format(date, "EEEE d 'de' MMMM", { locale: es });
     const fechaTitlePart = fechaText.charAt(0).toUpperCase() + fechaText.slice(1);
     title = `Pronósticos de Fútbol para ${fechaTitlePart} - Fútbol Stats Zone`;
     description = `Consulta los pronósticos y estadísticas de fútbol para ${fechaText}. Análisis detallado, equipos favoritos, y resultados.`;
