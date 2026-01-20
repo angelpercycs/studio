@@ -52,7 +52,7 @@ export function MatchesByLeague() {
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
   const [selectedRound, setSelectedRound] = useState<string | null>(null);
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [showAll, setShowAll] = useState(true);
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches());
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export function MatchesByLeague() {
     setRounds([]);
     setMatches([]);
     setError(null);
-    setShowOnlyFavorites(false);
+    setShowAll(true);
     if (!countryId) return;
 
     setLoading(prev => ({ ...prev, seasons: true }));
@@ -123,7 +123,7 @@ export function MatchesByLeague() {
     setRounds([]);
     setMatches([]);
     setError(null);
-    setShowOnlyFavorites(false);
+    setShowAll(true);
     if (!season || !finalCountryId) return;
 
     setLoading(prev => ({ ...prev, leagues: true }));
@@ -142,7 +142,7 @@ export function MatchesByLeague() {
     setRounds([]);
     setMatches([]);
     setError(null);
-    setShowOnlyFavorites(false);
+    setShowAll(true);
     if (!leagueId || !selectedSeason) return;
     
     setLoading(prev => ({ ...prev, rounds: true }));
@@ -159,7 +159,6 @@ export function MatchesByLeague() {
     setSelectedRound(round);
     setMatches([]);
     setError(null);
-    setShowOnlyFavorites(false);
     if (!round || !selectedLeague || !selectedSeason) return;
     
     setLoading(prev => ({ ...prev, matches: true }));
@@ -167,8 +166,10 @@ export function MatchesByLeague() {
     if (result && result.error) {
       setError(result.error);
       setMatches([]);
+      setShowAll(true);
     } else if (result && result.data) {
       setMatches(result.data);
+      setShowAll(!result.data.some(m => m.favorite));
     }
     setLoading(prev => ({ ...prev, matches: false }));
   }, [selectedLeague, selectedSeason]);
@@ -195,7 +196,7 @@ export function MatchesByLeague() {
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    const sourceMatches = showOnlyFavorites ? matches.filter(match => match.favorite) : matches;
+    const sourceMatches = showAll ? matches : matches.filter(match => match.favorite);
 
     matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
@@ -207,7 +208,7 @@ export function MatchesByLeague() {
     unpinned.push(...unpinnedSource);
     
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds, showOnlyFavorites]);
+  }, [matches, pinnedMatchIds, showAll]);
 
 
   return (
@@ -293,8 +294,8 @@ export function MatchesByLeague() {
                   </div>
                   <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico! ({favoriteMatchesCount})</AlertTitle>
                 </div>
-                <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                  {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
+                <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                  {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
                 </Button>
               </div>
             </Alert>

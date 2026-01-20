@@ -38,7 +38,7 @@ export function MatchesByDate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [showAll, setShowAll] = useState(true);
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches);
   
   useEffect(() => {
@@ -55,17 +55,19 @@ export function MatchesByDate() {
     setLoading(true);
     setError(null);
     setMatches([]);
-    setShowOnlyFavorites(false);
 
     const dateString = format(date, 'yyyy-MM-dd');
     const result = await getMatchesByDate(dateString);
 
     if (result && result.error) {
       setError(result.error);
+      setShowAll(true);
     } else if (result && result.data) {
       setMatches(result.data);
+      setShowAll(!result.data.some(m => m.favorite));
     } else {
         setError("No se pudieron cargar los partidos. Por favor, inténtelo de nuevo más tarde.");
+        setShowAll(true);
     }
     setLoading(false);
   }, []);
@@ -98,7 +100,7 @@ export function MatchesByDate() {
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    const sourceMatches = showOnlyFavorites ? matches.filter(match => match.favorite) : matches;
+    const sourceMatches = showAll ? matches : matches.filter(match => match.favorite);
 
     matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
@@ -110,7 +112,7 @@ export function MatchesByDate() {
     unpinned.push(...unpinnedSource);
 
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds, showOnlyFavorites]);
+  }, [matches, pinnedMatchIds, showAll]);
 
 
   const formatDateWithDay = (date: Date) => {
@@ -156,8 +158,8 @@ export function MatchesByDate() {
                 </div>
                 <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico! ({favoriteMatchesCount})</AlertTitle>
               </div>
-              <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
+              <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
               </Button>
             </div>
           </Alert>

@@ -37,7 +37,7 @@ export function MatchesByFavorite() {
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
 
   const [loading, setLoading] = useState({
@@ -74,6 +74,7 @@ export function MatchesByFavorite() {
     setTeams([]);
     setMatches([]);
     setError(null);
+    setShowAll(true);
     if (!countryId) return;
 
     setLoading(prev => ({ ...prev, seasons: true }));
@@ -97,6 +98,7 @@ export function MatchesByFavorite() {
     setTeams([]);
     setMatches([]);
     setError(null);
+    setShowAll(true);
     if (!season || !finalCountryId) return;
 
     setLoading(prev => ({ ...prev, leagues: true }));
@@ -115,6 +117,7 @@ export function MatchesByFavorite() {
     setTeams([]);
     setMatches([]);
     setError(null);
+    setShowAll(true);
     if (!leagueId || !selectedSeason) return;
 
     setLoading(prev => ({ ...prev, teams: true }));
@@ -138,8 +141,10 @@ export function MatchesByFavorite() {
     if (result && result.error) {
       setError(result.error);
       setMatches([]);
+      setShowAll(true);
     } else if (result && result.data) {
       setMatches(result.data);
+      setShowAll(!result.data.some(m => m.favorite));
     }
     setLoading(prev => ({ ...prev, matches: false }));
   }, [selectedLeague, selectedSeason]);
@@ -149,11 +154,11 @@ export function MatchesByFavorite() {
   }, [matches, loading.matches]);
 
   const filteredMatches = useMemo(() => {
-    if (showOnlyFavorites) {
-      return matches.filter(match => match.favorite);
+    if (showAll) {
+      return matches;
     }
-    return matches;
-  }, [matches, showOnlyFavorites]);
+    return matches.filter(match => match.favorite);
+  }, [matches, showAll]);
 
   return (
     <Card>
@@ -238,8 +243,8 @@ export function MatchesByFavorite() {
                   </div>
                   <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico!</AlertTitle>
                 </div>
-                <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                  {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
+                <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                  {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
                 </Button>
               </div>
             </Alert>

@@ -31,7 +31,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
   const [matches, setMatches] = useState<any[]>(initialMatches);
   const [loading, setLoading] = useState(false); // No loading initially as data is passed
   const [error, setError] = useState<string | null>(initialError);
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [showAll, setShowAll] = useState(!initialMatches.some(m => m.favorite));
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches);
   
   useEffect(() => {
@@ -64,7 +64,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    const sourceMatches = showOnlyFavorites ? matches.filter(match => match.favorite) : matches;
+    const sourceMatches = showAll ? matches : matches.filter(match => match.favorite);
 
     matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
@@ -76,7 +76,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
     unpinned.push(...unpinnedSource);
     
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds, showOnlyFavorites]);
+  }, [matches, pinnedMatchIds, showAll]);
 
   return (
     <Card>
@@ -92,8 +92,8 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
                     </div>
                     <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico! ({favoriteMatchesCount})</AlertTitle>
                   </div>
-                   <Button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                    {showOnlyFavorites ? 'Mostrar todos' : 'Mostrar solo favoritos'}
+                   <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                    {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
                   </Button>
                 </div>
               </Alert>
