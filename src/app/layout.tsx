@@ -132,20 +132,6 @@ export default function RootLayout({
                     La información publicada en este sitio, incluyendo resultados y pronósticos, se ofrece únicamente con fines de entretenimiento y no constituye consejo de apuestas ni relación contractual alguna.
                     </p>
                 </div>
-                <div className="border-t border-border/50 pt-4">
-                    <h3 className="font-semibold mb-2 text-sm">Información Regulatoria (Perú)</h3>
-                    <div className="space-y-2">
-                        <p>
-                            <span className="font-semibold">BETSSON:</span> 18+ | SFTG Limited | RUC: 20612423371 | DOMICILIO FISCAL: MANUEL A. OLAECHEA 1470, OFICINA 201, DISTRITO DE MIRAFLORES, PROVINCIA Y DEPARTAMENTO DE LIMA | MINCETUR License #: 11002586010000 & 21002586010000.
-                        </p>
-                        <p>
-                            <span className="font-semibold">INKABET:</span> 18+ | Lucky Torito S.A.C. | MINCETUR License #: 11002603010000 & 21002603010000.
-                        </p>
-                        <p className="italic">
-                            "El juego y las apuestas deportivas a distancia realizados en exceso pueden causar ludopatía".
-                        </p>
-                    </div>
-                </div>
               </footer>
             </div>
             <BetSlip />
