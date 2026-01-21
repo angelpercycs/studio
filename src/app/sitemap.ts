@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next';
 import { format, subDays, addDays } from 'date-fns';
 
-// Este archivo genera el mapa del sitio (sitemap) para ayudar a los motores de búsqueda
-// como Google a descubrir y entender la estructura de la web.
+// Este archivo genera dinámicamente el mapa del sitio (sitemap) para la aplicación.
+// Es crucial para la indexación en motores de búsqueda como Google, ya que les informa
+// sobre todas las páginas estáticas y dinámicas (basadas en fechas) disponibles.
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = 'https://fszscore.com';
