@@ -179,38 +179,36 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }
   return (
     <>
-      <div className="flex items-center w-full px-4 py-3 group">
+      <div className="flex items-start w-full px-4 py-3 group">
         {onPinToggle && (
-           <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center -ml-2">
+           <button onClick={handlePinClick} className="mr-4 p-2 flex items-center justify-center -ml-2 mt-1">
             <div className={cn(
               "h-4 w-4 rounded-full border-2 border-foreground/50 transition-colors",
               isPinned && "bg-foreground border-foreground"
             )}></div>
           </button>
         )}
-        <div className="w-16 text-muted-foreground text-center text-sm">{timeDisplay}</div>
+        <div className="w-16 text-muted-foreground text-center text-sm pt-1">{timeDisplay}</div>
         <div onClick={handleOpenSheet} className="flex-grow space-y-1 text-sm cursor-pointer hover:bg-muted/50 rounded p-2">
-            <div className="flex justify-between items-center">
-                <div className="flex-grow text-left flex items-center">
+            <div>
+                <div className="flex items-center font-medium">
                     <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
                     {isFavoriteTeam1 && <BlinkingLight />}
                 </div>
-            </div>
-            <div className="flex justify-between items-center">
-                <div className="flex-grow text-left flex items-center">
+                <div className="flex items-center font-medium">
                     <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
                     {isFavoriteTeam2 && <BlinkingLight />}
                 </div>
             </div>
              {isFavorite && (
-              <div className="mt-2 text-xs text-primary space-y-1">
-                <div className="font-semibold flex items-center gap-2">
+              <div className="pt-2 text-xs">
+                <div className="font-semibold text-primary flex items-center gap-2">
                     <ShieldCheck className="h-3 w-3"/>
                     <span>Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}</span>
                 </div>
                 {match.text_analysis && (
-                    <div className="pl-5 text-muted-foreground font-normal whitespace-pre-wrap">
-                        <span className="font-semibold text-primary">Análisis:</span> {match.text_analysis}
+                    <div className="mt-1 text-muted-foreground font-normal whitespace-pre-wrap">
+                        <span className="font-semibold text-primary/90">Análisis:</span> {match.text_analysis}
                     </div>
                 )}
               </div>
@@ -219,7 +217,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
         
         <PredictionControls match={match} />
 
-        <div className="flex flex-col items-center w-8 text-sm font-bold ml-4 text-foreground">
+        <div className="flex flex-col items-center w-8 text-sm font-bold ml-4 text-foreground pt-1">
             <span>{match.team1_score ?? '-'}</span>
             <span>{match.team2_score ?? '-'}</span>
         </div>
