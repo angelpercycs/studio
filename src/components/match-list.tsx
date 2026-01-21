@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Loader2, Pin, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Progress } from "./ui/progress";
 import { getMatchStats } from "@/app/actions/getRoundData";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/context/BetSlipContext";
@@ -131,7 +130,6 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const isFavoriteTeam1 = match.favorite === 'team1';
   const isFavoriteTeam2 = match.favorite === 'team2';
   const isFavorite = isFavoriteTeam1 || isFavoriteTeam2;
-  const favoriteTeamName = isFavoriteTeam1 ? match.team1?.name : match.team2?.name;
   
   const handleOpenSheet = useCallback(async () => {
     setIsSheetOpen(true);
@@ -149,17 +147,24 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   }, [match, matchDetails]);
 
   const handleShare = async () => {
-    const predictionText = isFavoriteTeam1 ? 'Gana Local' : (isFavoriteTeam2 ? 'Gana Visita' : 'Empate');
+    const predictionText = `Pronóstico: ${isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}`;
+    const analysisText = match.text_analysis ? `\n\nAnálisis: ${match.text_analysis}` : '';
+
     const shareData = {
-      title: `${match.team1?.name} vs ${match.team2?.name}`,
-      text: `🔥 PRONÓSTICO: ${predictionText} (50%)\n🏟️ ${match.team1?.name} vs ${match.team2?.name}\n📈 Estadísticas:`,
+      title: `Pronóstico para ${match.team1?.name} vs ${match.team2?.name}`,
+      text: `⚽ ${match.team1?.name} vs ${match.team2?.name}\n🔥 ${predictionText}${analysisText}\n\nConoce más en fszscore.com`,
       url: window.location.href,
     };
+
     try {
       if (navigator.share) { await navigator.share(shareData); } 
-      else { await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`); alert("¡Copiado!"); }
-    } catch (err) { console.error(err); }
+      else { 
+        await navigator.clipboard.writeText(shareData.text); 
+        alert("¡Pronóstico copiado al portapapeles!"); 
+      }
+    } catch (err) { console.error("Error al compartir", err); }
   };
+
 
   const BlinkingLight = () => (
     <div className="relative flex h-3 w-3 mx-2">
@@ -198,10 +203,16 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                 </div>
             </div>
              {isFavorite && (
-              <div className="mt-2 text-xs text-primary font-semibold flex items-center gap-2">
-                <ShieldCheck className="h-3 w-3"/>
-                <span>Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}</span>
-                <span>Probabilidad: 50%</span>
+              <div className="mt-2 text-xs text-primary space-y-1">
+                <div className="font-semibold flex items-center gap-2">
+                    <ShieldCheck className="h-3 w-3"/>
+                    <span>Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}</span>
+                </div>
+                {match.text_analysis && (
+                    <div className="pl-5 text-muted-foreground font-normal whitespace-pre-wrap">
+                        <span className="font-semibold text-primary">Análisis:</span> {match.text_analysis}
+                    </div>
+                )}
               </div>
             )}
         </div>
@@ -235,10 +246,13 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             {(isFavorite) && (
               <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
                   <p className="text-sm font-bold text-primary">
-                    Favorito a ganar: {favoriteTeamName}
+                    Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}
                   </p>
-                  <Progress value={50} className="h-2 bg-primary/20" indicatorClassName="bg-primary" />
-                  <p className="text-xs font-semibold text-primary">Predicción con 50% de probabilidad</p>
+                  {match.text_analysis && (
+                    <p className="text-sm text-muted-foreground">
+                        <span className="font-semibold text-primary">Análisis:</span> {match.text_analysis}
+                    </p>
+                  )}
               </div>
             )}
           </SheetHeader>

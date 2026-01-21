@@ -228,6 +228,29 @@ async function getOddsForMatches(matchIds: string[]): Promise<Record<string, any
     return oddsMap;
 }
 
+async function getAnalysisForMatches(matchIds: string[]): Promise<Record<string, string>> {
+    if (matchIds.length === 0) {
+        return {};
+    }
+
+    const { data, error } = await supabase
+        .from('6_match_analysis')
+        .select('match_id, text_analysis')
+        .in('match_id', matchIds);
+
+    if (error) {
+        console.error('Error fetching analysis:', error);
+        return {};
+    }
+
+    const analysisMap: Record<string, string> = {};
+    for (const analysis of data) {
+        analysisMap[analysis.match_id] = analysis.text_analysis;
+    }
+
+    return analysisMap;
+}
+
 export async function getMatchesByDate(dateString: string) {
     try {
         const targetDate = parseISO(dateString);
@@ -265,9 +288,10 @@ export async function getMatchesByDate(dateString: string) {
         
         const leaguesMap = await getLeagues();
         const matchIds = matchesData.map(m => m.id);
-        const [favoritesMap, oddsMap] = await Promise.all([
+        const [favoritesMap, oddsMap, analysisMap] = await Promise.all([
             getFavoritesForMatches(matchIds),
-            getOddsForMatches(matchIds)
+            getOddsForMatches(matchIds),
+            getAnalysisForMatches(matchIds)
         ]);
 
         const matchesWithLeaguesAndFavorites = matchesData.map(match => {
@@ -284,7 +308,8 @@ export async function getMatchesByDate(dateString: string) {
                 ...match,
                 league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } },
                 favorite,
-                odds: oddsMap[match.id] || null
+                odds: oddsMap[match.id] || null,
+                text_analysis: analysisMap[match.id] || null
             };
         });
         
@@ -460,9 +485,10 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
         
         const leaguesMap = await getLeagues();
         const matchIds = matchesData.map(m => m.id);
-        const [favoritesMap, oddsMap] = await Promise.all([
+        const [favoritesMap, oddsMap, analysisMap] = await Promise.all([
             getFavoritesForMatches(matchIds),
-            getOddsForMatches(matchIds)
+            getOddsForMatches(matchIds),
+            getAnalysisForMatches(matchIds)
         ]);
         
         const matchesWithLeagues = matchesData.map(match => {
@@ -479,7 +505,8 @@ export async function getMatchesByRound(leagueId: string, season: string, round:
                 ...match,
                 league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } },
                 favorite,
-                odds: oddsMap[match.id] || null
+                odds: oddsMap[match.id] || null,
+                text_analysis: analysisMap[match.id] || null
             };
         });
 
@@ -594,9 +621,10 @@ export async function getTeamMatches(teamId: string, leagueId: string, season: s
         
         const leaguesMap = await getLeagues();
         const matchIds = matchesData.map(m => m.id);
-        const [favoritesMap, oddsMap] = await Promise.all([
+        const [favoritesMap, oddsMap, analysisMap] = await Promise.all([
             getFavoritesForMatches(matchIds),
-            getOddsForMatches(matchIds)
+            getOddsForMatches(matchIds),
+            getAnalysisForMatches(matchIds)
         ]);
         
         const matchesWithLeagues = matchesData.map(match => {
@@ -613,7 +641,8 @@ export async function getTeamMatches(teamId: string, leagueId: string, season: s
                 ...match,
                 league: leaguesMap[match.league_id] || { name: match.league_id, countries: { name: 'Unknown', flag: null } },
                 favorite,
-                odds: oddsMap[match.id] || null
+                odds: oddsMap[match.id] || null,
+                text_analysis: analysisMap[match.id] || null
             };
         });
         
