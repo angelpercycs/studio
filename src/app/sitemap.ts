@@ -6,7 +6,7 @@ import { format, subDays, addDays } from 'date-fns';
 // sobre todas las páginas estáticas y dinámicas (basadas en fechas) disponibles.
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://fszscore.com';
+    const baseUrl = 'https://www.fszscore.com';
     const lastModified = new Date().toISOString();
 
     // 1. Rutas estáticas: Son las páginas principales que no cambian.
