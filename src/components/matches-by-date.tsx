@@ -90,9 +90,9 @@ export function MatchesByDate() {
     });
   }, []);
 
-  const favoriteMatchesCount = useMemo(() => {
-    if (loading) return 0;
-    return matches.filter(match => match.favorite).length;
+  const favoriteMatches = useMemo(() => {
+    if (loading) return [];
+    return matches.filter(match => match.favorite);
   }, [matches, loading]);
 
   const { pinned, unpinned } = useMemo(() => {
@@ -100,8 +100,8 @@ export function MatchesByDate() {
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    const sourceMatches = showAll ? matches : matches.filter(match => match.favorite);
-
+    const sourceMatches = !showAll ? matches : favoriteMatches;
+    
     matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
         pinned.push(match);
@@ -112,7 +112,11 @@ export function MatchesByDate() {
     unpinned.push(...unpinnedSource);
 
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds, showAll]);
+  }, [matches, pinnedMatchIds, showAll, favoriteMatches]);
+
+  const analysisMatches = useMemo(() => {
+    return matches.filter(match => match.text_analysis);
+  }, [matches]);
 
 
   const formatDateWithDay = (date: Date) => {
@@ -120,60 +124,78 @@ export function MatchesByDate() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Búsqueda por Fecha</CardTitle>
-        <CardDescription>Selecciona una fecha para ver todos los encuentros programados.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className="w-full sm:w-auto justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? formatDateWithDay(selectedDate) : <span>Selecciona una fecha</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                initialFocus
-                locale={es}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        {favoriteMatchesCount > 0 && (
-          <Alert variant="destructive" className="mb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="relative flex h-3 w-3">
-                    <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
-                    <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Búsqueda por Fecha</CardTitle>
+          <CardDescription>Selecciona una fecha para ver todos los encuentros programados.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className="w-full sm:w-auto justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? formatDateWithDay(selectedDate) : <span>Selecciona una fecha</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                  locale={es}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          {favoriteMatches.length > 0 && (
+            <Alert variant="destructive" className="mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex h-3 w-3">
+                      <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
+                      <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
+                  </div>
+                  <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico! ({favoriteMatches.length})</AlertTitle>
                 </div>
-                <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico! ({favoriteMatchesCount})</AlertTitle>
+                <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                  {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
+                </Button>
               </div>
-              <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
-              </Button>
-            </div>
-          </Alert>
-        )}
-        <MatchList 
-            matches={unpinned}
-            pinnedMatches={pinned}
-            error={error} 
-            loading={loading}
-            onPinToggle={handlePinToggle}
-            pinnedMatchIds={pinnedMatchIds}
-            adBanner={<AdBanner />}
-        />
-      </CardContent>
-    </Card>
+            </Alert>
+          )}
+          <MatchList 
+              matches={unpinned}
+              pinnedMatches={pinned}
+              error={error} 
+              loading={loading}
+              onPinToggle={handlePinToggle}
+              pinnedMatchIds={pinnedMatchIds}
+              adBanner={<AdBanner />}
+          />
+        </CardContent>
+      </Card>
+      {analysisMatches.length > 0 && (
+        <Card className="mt-8">
+            <CardHeader>
+                <CardTitle>Análisis Profundo de la Jornada</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {analysisMatches.map(match => (
+                    <div key={match.id} id={`analysis-${match.id}`} className="scroll-mt-20">
+                        <h3 className="font-semibold text-lg">{match.team1?.name} vs {match.team2?.name}</h3>
+                        <p className="text-sm text-muted-foreground">{match.league?.name}</p>
+                        <p className="mt-2 text-justify whitespace-pre-wrap">{match.text_analysis}</p>
+                    </div>
+                ))}
+            </CardContent>
+        </Card>
+      )}
+    </>
   );
 }

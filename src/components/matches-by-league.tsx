@@ -186,9 +186,9 @@ export function MatchesByLeague() {
     });
   }, []);
 
-  const favoriteMatchesCount = useMemo(() => {
-    if (loading.matches) return 0;
-    return matches.filter(match => match.favorite).length;
+  const favoriteMatches = useMemo(() => {
+    if (loading.matches) return [];
+    return matches.filter(match => match.favorite);
   }, [matches, loading.matches]);
 
   const { pinned, unpinned } = useMemo(() => {
@@ -196,7 +196,7 @@ export function MatchesByLeague() {
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    const sourceMatches = showAll ? matches : matches.filter(match => match.favorite);
+    const sourceMatches = !showAll ? matches : favoriteMatches;
 
     matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
@@ -208,121 +208,143 @@ export function MatchesByLeague() {
     unpinned.push(...unpinnedSource);
     
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds, showAll]);
+  }, [matches, pinnedMatchIds, showAll, favoriteMatches]);
+
+  const analysisMatches = useMemo(() => {
+    return matches.filter(match => match.text_analysis);
+  }, [matches]);
 
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Búsqueda por Jornada</CardTitle>
-        <CardDescription>Selecciona un país, temporada, liga y jornada para ver los encuentros.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid md:grid-cols-4 gap-6 mb-6">
-          <div className="grid gap-2">
-            <Label htmlFor="country">País</Label>
-            <Select onValueChange={handleCountryChange} value={selectedCountry ?? ''} disabled={loading.countries}>
-              <SelectTrigger id="country" aria-label="Seleccionar país">
-                <SelectValue placeholder={loading.countries ? "Cargando..." : "Seleccionar país"} />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((country) => (
-                  <SelectItem key={country.id} value={country.id.toString()}>
-                    <div className="flex items-center gap-2">
-                      {country.flag && (
-                        <img 
-                          src={country.flag}
-                          alt={country.name}
-                          className="h-5 w-5"
-                        />
-                      )}
-                      <span>{country.name}</span>
-                    </div>
-                    </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="season">Temporada</Label>
-            <Select onValueChange={(value) => handleSeasonChange(value)} value={selectedSeason ?? ''} disabled={!selectedCountry || loading.seasons}>
-              <SelectTrigger id="season" aria-label="Seleccionar temporada">
-                <SelectValue placeholder={loading.seasons ? "Cargando..." : (seasons.length > 0 ? "Seleccionar temporada" : "No hay temporadas")} />
-              </SelectTrigger>
-              <SelectContent>
-                {seasons.map((season) => (
-                  <SelectItem key={season} value={season}>{season}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="league">Liga</Label>
-            <Select onValueChange={handleLeagueChange} value={selectedLeague ?? ''} disabled={!selectedSeason || loading.leagues}>
-              <SelectTrigger id="league" aria-label="Seleccionar liga">
-                <SelectValue placeholder={loading.leagues ? "Cargando..." : (leagues.length > 0 ? "Seleccionar liga" : "No hay ligas")} />
-              </SelectTrigger>
-              <SelectContent>
-                {leagues.map((league) => (
-                  <SelectItem key={league.id} value={league.id.toString()}>{league.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="round">Jornada</Label>
-            <Select onValueChange={handleRoundChange} value={selectedRound ?? ''} disabled={!selectedLeague || loading.rounds}>
-              <SelectTrigger id="round" aria-label="Seleccionar jornada">
-                <SelectValue placeholder={loading.rounds ? "Cargando..." : (rounds.length > 0 ? "Seleccionar jornada" : "No hay jornadas")} />
-              </SelectTrigger>
-              <SelectContent>
-                {rounds.map((round) => (
-                  <SelectItem key={round} value={round}>{round}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        
-        {favoriteMatchesCount > 0 && (
-            <Alert variant="destructive" className="mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="relative flex h-3 w-3">
-                      <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
-                      <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
-                  </div>
-                  <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico! ({favoriteMatchesCount})</AlertTitle>
-                </div>
-                <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                  {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
-                </Button>
-              </div>
-            </Alert>
-        )}
-
-        {loading.matches ? (
-            <div className="space-y-4 mt-6">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-20 w-full rounded-lg" />
-              ))}
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Búsqueda por Jornada</CardTitle>
+          <CardDescription>Selecciona un país, temporada, liga y jornada para ver los encuentros.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-4 gap-6 mb-6">
+            <div className="grid gap-2">
+              <Label htmlFor="country">País</Label>
+              <Select onValueChange={handleCountryChange} value={selectedCountry ?? ''} disabled={loading.countries}>
+                <SelectTrigger id="country" aria-label="Seleccionar país">
+                  <SelectValue placeholder={loading.countries ? "Cargando..." : "Seleccionar país"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((country) => (
+                    <SelectItem key={country.id} value={country.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        {country.flag && (
+                          <img 
+                            src={country.flag}
+                            alt={country.name}
+                            className="h-5 w-5"
+                          />
+                        )}
+                        <span>{country.name}</span>
+                      </div>
+                      </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-        ) : selectedRound ? (
-          <MatchList 
-            matches={unpinned}
-            pinnedMatches={pinned}
-            error={error} 
-            loading={loading.matches}
-            onPinToggle={handlePinToggle}
-            pinnedMatchIds={pinnedMatchIds}
-          />
-        ) : (
-          <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">
-            <p>Selecciona los filtros para buscar encuentros.</p>
+            <div className="grid gap-2">
+              <Label htmlFor="season">Temporada</Label>
+              <Select onValueChange={(value) => handleSeasonChange(value)} value={selectedSeason ?? ''} disabled={!selectedCountry || loading.seasons}>
+                <SelectTrigger id="season" aria-label="Seleccionar temporada">
+                  <SelectValue placeholder={loading.seasons ? "Cargando..." : (seasons.length > 0 ? "Seleccionar temporada" : "No hay temporadas")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {seasons.map((season) => (
+                    <SelectItem key={season} value={season}>{season}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="league">Liga</Label>
+              <Select onValueChange={handleLeagueChange} value={selectedLeague ?? ''} disabled={!selectedSeason || loading.leagues}>
+                <SelectTrigger id="league" aria-label="Seleccionar liga">
+                  <SelectValue placeholder={loading.leagues ? "Cargando..." : (leagues.length > 0 ? "Seleccionar liga" : "No hay ligas")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {leagues.map((league) => (
+                    <SelectItem key={league.id} value={league.id.toString()}>{league.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="round">Jornada</Label>
+              <Select onValueChange={handleRoundChange} value={selectedRound ?? ''} disabled={!selectedLeague || loading.rounds}>
+                <SelectTrigger id="round" aria-label="Seleccionar jornada">
+                  <SelectValue placeholder={loading.rounds ? "Cargando..." : (rounds.length > 0 ? "Seleccionar jornada" : "No hay jornadas")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {rounds.map((round) => (
+                    <SelectItem key={round} value={round}>{round}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        )}
+          
+          {favoriteMatches.length > 0 && (
+              <Alert variant="destructive" className="mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex h-3 w-3">
+                        <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
+                        <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
+                    </div>
+                    <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico! ({favoriteMatches.length})</AlertTitle>
+                  </div>
+                  <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                    {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
+                  </Button>
+                </div>
+              </Alert>
+          )}
 
-      </CardContent>
-    </Card>
+          {loading.matches ? (
+              <div className="space-y-4 mt-6">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                ))}
+              </div>
+          ) : selectedRound ? (
+            <MatchList 
+              matches={unpinned}
+              pinnedMatches={pinned}
+              error={error} 
+              loading={loading.matches}
+              onPinToggle={handlePinToggle}
+              pinnedMatchIds={pinnedMatchIds}
+            />
+          ) : (
+            <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">
+              <p>Selecciona los filtros para buscar encuentros.</p>
+            </div>
+          )}
+
+        </CardContent>
+      </Card>
+      {analysisMatches.length > 0 && selectedRound && (
+        <Card className="mt-8">
+            <CardHeader>
+                <CardTitle>Análisis Profundo de la Jornada</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {analysisMatches.map(match => (
+                    <div key={match.id} id={`analysis-${match.id}`} className="scroll-mt-20">
+                        <h3 className="font-semibold text-lg">{match.team1?.name} vs {match.team2?.name}</h3>
+                        <p className="text-sm text-muted-foreground">{match.league?.name}</p>
+                        <p className="mt-2 text-justify whitespace-pre-wrap">{match.text_analysis}</p>
+                    </div>
+                ))}
+            </CardContent>
+        </Card>
+      )}
+    </>
   );
 }
