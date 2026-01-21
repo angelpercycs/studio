@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { getMatchesByDate } from "@/app/actions/getRoundData";
 import { MatchList } from "@/components/match-list";
 import { Alert, AlertTitle } from "@/components/ui/alert";
@@ -31,7 +31,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
   const [matches, setMatches] = useState<any[]>(initialMatches);
   const [loading, setLoading] = useState(false); // No loading initially as data is passed
   const [error, setError] = useState<string | null>(initialError);
-  const [showAll, setShowAll] = useState(initialMatches.some(m => m.favorite));
+  const [showAll, setShowAll] = useState(!initialMatches.some(m => m.favorite));
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches);
   
   useEffect(() => {
@@ -64,7 +64,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    const sourceMatches = !showAll ? matches : favoriteMatches;
+    const sourceMatches = showAll ? matches : favoriteMatches;
 
     matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
@@ -118,20 +118,22 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
       </Card>
 
       {analysisMatches.length > 0 && (
-          <Card className="mt-8">
-              <CardHeader>
-                  <CardTitle>Análisis Profundo de la Jornada</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+          <div className="mt-8">
+              <h2 className="text-2xl font-bold tracking-tight mb-4">Análisis Profundo de la Jornada</h2>
+              <div className="space-y-6">
                   {analysisMatches.map(match => (
-                      <div key={match.id} id={`analysis-${match.id}`} className="scroll-mt-20">
-                          <h3 className="font-semibold text-lg">{match.team1?.name} vs {match.team2?.name}</h3>
-                          <p className="text-sm text-muted-foreground">{match.league?.name}</p>
-                          <p className="mt-2 text-justify whitespace-pre-wrap">{match.text_analysis}</p>
-                      </div>
+                      <Card key={match.id} id={`analysis-${match.id}`} className="scroll-mt-20">
+                          <CardHeader>
+                              <CardTitle>{match.team1?.name} vs {match.team2?.name}</CardTitle>
+                              <CardDescription>{match.league?.name}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                              <p className="text-justify whitespace-pre-wrap">{match.text_analysis}</p>
+                          </CardContent>
+                      </Card>
                   ))}
-              </CardContent>
-          </Card>
+              </div>
+          </div>
       )}
     </>
   );

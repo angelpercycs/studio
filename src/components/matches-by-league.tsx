@@ -196,7 +196,7 @@ export function MatchesByLeague() {
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    const sourceMatches = !showAll ? matches : favoriteMatches;
+    const sourceMatches = showAll ? matches : favoriteMatches;
 
     matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
@@ -330,20 +330,22 @@ export function MatchesByLeague() {
         </CardContent>
       </Card>
       {analysisMatches.length > 0 && selectedRound && (
-        <Card className="mt-8">
-            <CardHeader>
-                <CardTitle>Análisis Profundo de la Jornada</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+        <div className="mt-8">
+            <h2 className="text-2xl font-bold tracking-tight mb-4">Análisis Profundo de la Jornada</h2>
+            <div className="space-y-6">
                 {analysisMatches.map(match => (
-                    <div key={match.id} id={`analysis-${match.id}`} className="scroll-mt-20">
-                        <h3 className="font-semibold text-lg">{match.team1?.name} vs {match.team2?.name}</h3>
-                        <p className="text-sm text-muted-foreground">{match.league?.name}</p>
-                        <p className="mt-2 text-justify whitespace-pre-wrap">{match.text_analysis}</p>
-                    </div>
+                    <Card key={match.id} id={`analysis-${match.id}`} className="scroll-mt-20">
+                        <CardHeader>
+                            <CardTitle>{match.team1?.name} vs {match.team2?.name}</CardTitle>
+                            <CardDescription>{match.league?.name}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-justify whitespace-pre-wrap">{match.text_analysis}</p>
+                        </CardContent>
+                    </Card>
                 ))}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
       )}
     </>
   );
