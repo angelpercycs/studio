@@ -1,57 +1,59 @@
 import { MetadataRoute } from 'next';
 import { format, subDays, addDays } from 'date-fns';
 
+// Este archivo genera el mapa del sitio (sitemap) para ayudar a los motores de búsqueda
+// como Google a descubrir y entender la estructura de la web.
+
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = 'https://fszscore.com';
+    const lastModified = new Date().toISOString();
 
-    const staticRoutes = [
-        { url: '/', changeFrequency: 'hourly', priority: 1.0 },
-        { url: '/por-fecha', changeFrequency: 'weekly', priority: 0.7 },
-        { url: '/por-liga', changeFrequency: 'weekly', priority: 0.7 },
-        { url: '/por-favorito', changeFrequency: 'weekly', priority: 0.7 },
-        { url: '/login', changeFrequency: 'monthly', priority: 0.5 },
-        { url: '/mis-pronosticos', changeFrequency: 'monthly', priority: 0.5 },
-        { url: '/politica-de-privacidad', changeFrequency: 'monthly', priority: 0.3 },
-        { url: '/terminos-y-condiciones', changeFrequency: 'monthly', priority: 0.3 },
+    // 1. Rutas estáticas: Son las páginas principales que no cambian.
+    const staticRoutes: MetadataRoute.Sitemap = [
+        { url: `${baseUrl}/`, changeFrequency: 'hourly', priority: 1.0, lastModified },
+        { url: `${baseUrl}/por-fecha`, changeFrequency: 'daily', priority: 0.8, lastModified },
+        { url: `${baseUrl}/por-liga`, changeFrequency: 'daily', priority: 0.8, lastModified },
+        { url: `${baseUrl}/por-favorito`, changeFrequency: 'daily', priority: 0.8, lastModified },
+        { url: `${baseUrl}/login`, changeFrequency: 'monthly', priority: 0.5, lastModified },
+        { url: `${baseUrl}/mis-pronosticos`, changeFrequency: 'monthly', priority: 0.5, lastModified },
+        { url: `${baseUrl}/politica-de-privacidad`, changeFrequency: 'yearly', priority: 0.3, lastModified },
+        { url: `${baseUrl}/terminos-y-condiciones`, changeFrequency: 'yearly', priority: 0.3, lastModified },
     ];
 
-    const dynamicDateRoutes = [];
+    // 2. Rutas dinámicas de fechas: Generamos enlaces para los últimos y próximos 7 días.
+    //    Esto es crucial para que Google descubra la navegación secuencial que implementamos.
+    const dynamicDateRoutes: MetadataRoute.Sitemap = [];
     const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+    const numberOfDays = 7; // Número de días hacia el pasado y futuro a generar
 
-    // 7 days in the past
-    for (let i = 1; i <= 7; i++) {
+    // Generar rutas para los días pasados
+    for (let i = 1; i <= numberOfDays; i++) {
         const date = subDays(today, i);
         const dateString = format(date, 'yyyy-MM-dd');
-        const url = (i === 1) ? '/partidos/ayer' : `/partidos/${dateString}`;
+        // El primer día hacia atrás es 'ayer', los demás usan la fecha.
+        const path = (i === 1) ? '/partidos/ayer' : `/partidos/${dateString}`;
         dynamicDateRoutes.push({
-            url: url,
+            url: `${baseUrl}${path}`,
             changeFrequency: 'daily',
-            priority: 0.8
+            priority: 0.9,
+            lastModified,
         });
     }
 
-    // 7 days in the future
-    for (let i = 1; i <= 7; i++) {
+    // Generar rutas para los días futuros
+    for (let i = 1; i <= numberOfDays; i++) {
         const date = addDays(today, i);
         const dateString = format(date, 'yyyy-MM-dd');
-        const url = (i === 1) ? '/partidos/manana' : `/partidos/${dateString}`;
+        // El primer día hacia adelante es 'mañana', los demás usan la fecha.
+        const path = (i === 1) ? '/partidos/manana' : `/partidos/${dateString}`;
         dynamicDateRoutes.push({
-            url: url,
+            url: `${baseUrl}${path}`,
             changeFrequency: 'daily',
-            priority: 0.8
+            priority: 0.9,
+            lastModified,
         });
     }
     
-    const allRoutes = [...staticRoutes, ...dynamicDateRoutes];
-
-    // Ensure no duplicate URLs
-    const uniqueRoutes = Array.from(new Map(allRoutes.map(item => [item.url, item])).values());
-
-
-    return uniqueRoutes.map((route) => ({
-        url: `${baseUrl}${route.url}`,
-        lastModified: new Date().toISOString(),
-        changeFrequency: route.changeFrequency as any,
-        priority: route.priority,
-    }));
+    // 3. Unimos todas las rutas generadas.
+    return [...staticRoutes, ...dynamicDateRoutes];
 }
