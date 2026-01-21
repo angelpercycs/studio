@@ -4,7 +4,7 @@ import * as React from "react";
 import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Loader2, Pin, ShieldCheck } from "lucide-react";
+import { AlertCircle, Loader2, Pin, ShieldCheck, ChevronsUpDown } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { getMatchStats } from "@/app/actions/getRoundData";
@@ -13,6 +13,7 @@ import { useBetSlip } from "@/context/BetSlipContext";
 import { useUser } from "@/firebase/hooks";
 import { Button } from "./ui/button";
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "./ui/table";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
 const MatchDaySkeleton = () => (
@@ -189,8 +190,8 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
           </button>
         )}
         <div className="w-16 text-muted-foreground text-center text-sm pt-1">{timeDisplay}</div>
-        <div onClick={handleOpenSheet} className="flex-grow space-y-1 text-sm cursor-pointer hover:bg-muted/50 rounded p-2">
-            <div>
+        <div className="flex-grow space-y-1 text-sm">
+            <div onClick={handleOpenSheet} className="cursor-pointer hover:bg-muted/50 rounded p-2 -m-2">
                 <div className="flex items-center font-medium">
                     <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
                     {isFavoriteTeam1 && <BlinkingLight />}
@@ -207,9 +208,19 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                     <span>Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}</span>
                 </div>
                 {match.text_analysis && (
-                    <div className="mt-1 text-muted-foreground font-normal whitespace-pre-wrap">
-                        <span className="font-semibold text-primary/90">Análisis:</span> {match.text_analysis}
-                    </div>
+                  <Collapsible className="mt-2">
+                    <CollapsibleTrigger asChild>
+                       <button className="flex items-center text-xs font-semibold text-primary/90 hover:underline">
+                         <ChevronsUpDown className="h-3 w-3 mr-1" />
+                         Análisis
+                       </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <p className="text-muted-foreground font-normal whitespace-pre-wrap text-justify pt-1">
+                        {match.text_analysis}
+                      </p>
+                    </CollapsibleContent>
+                  </Collapsible>
                 )}
               </div>
             )}
