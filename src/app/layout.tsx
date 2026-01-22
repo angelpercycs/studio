@@ -126,7 +126,6 @@ export default function RootLayout({
             <Toaster />
           </BetSlipProvider>
         </FirebaseClientProvider>
-        <Script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5144766807318748" crossOrigin="anonymous" strategy="afterInteractive" />
         {/* Google tag (gtag.js) */}
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-1NDL1YXWW7"></Script>
         <Script id="google-analytics">
