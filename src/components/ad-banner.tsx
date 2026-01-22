@@ -1,23 +1,46 @@
 "use client";
 
-import React from 'react';
-import { AffiliateBanner } from './affiliate-banner';
+import React, { useEffect, useRef } from 'react';
 
-const TerraAdUnit = () => {
-    // This component will render the Terra/Betsson ad.
-    // The script is from effectivegatecpm.com, which the user refers to as 'Terra'.
-    return (
-        <div className="flex justify-center bg-muted/50 rounded-md flex-1 min-h-[100px] min-w-0">
-             <AffiliateBanner scriptSrc="//pl28541828.effectivegatecpm.com/64/dc/83/64dc83486d297efc52e9102186b3a5e4.js" />
-        </div>
-    );
+const HighPerformanceAdUnit = () => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const scriptsAdded = useRef(false);
+
+    useEffect(() => {
+        const container = containerRef.current;
+
+        if (container && !scriptsAdded.current) {
+            const configScript = document.createElement('script');
+            configScript.type = 'text/javascript';
+            configScript.innerHTML = `
+                atOptions = {
+                    'key' : 'b31d670dfaea3679b33823f7f523a888',
+                    'format' : 'iframe',
+                    'height' : 50,
+                    'width' : 320,
+                    'params' : {}
+                };
+            `;
+            container.appendChild(configScript);
+
+            const invokeScript = document.createElement('script');
+            invokeScript.type = 'text/javascript';
+            invokeScript.src = 'https://www.highperformanceformat.com/b31d670dfaea3679b33823f7f523a888/invoke.js';
+            invokeScript.async = true;
+            container.appendChild(invokeScript);
+            
+            scriptsAdded.current = true;
+        }
+    }, []);
+
+    return <div ref={containerRef} className="flex justify-center items-center w-[320px] h-[50px] min-w-[320px]" />;
 };
 
 export const AdBanner = () => {
     return (
         <div className="flex flex-col md:flex-row gap-4 w-full p-2 bg-muted/20 rounded-lg items-stretch justify-center">
-            <TerraAdUnit />
-            <TerraAdUnit />
+            <HighPerformanceAdUnit />
+            <HighPerformanceAdUnit />
         </div>
     );
 };
