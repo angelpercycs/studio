@@ -1,16 +1,12 @@
 "use client";
 
-import { useMemo, useState, useEffect }from 'react';
-import { useCollection } from "@/firebase";
-import { useFirestore, useUser } from "@/firebase/hooks";
-import { collection, orderBy, query } from "firebase/firestore";
+import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useUser } from "@/firebase/hooks";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash2, Share2 } from "lucide-react";
-import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Skeleton } from './ui/skeleton';
@@ -18,23 +14,45 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { Badge } from './ui/badge';
 import Link from 'next/link';
-import { useMemoFirebase } from '@/firebase/provider';
 import { getMatchesByIds } from '@/app/actions/getRoundData';
+import { supabase } from '@/lib/supabase';
 
 export function MyPredictions() {
     const { user, isUserLoading } = useUser();
-    const firestore = useFirestore();
     const { toast } = useToast();
-
-    const betSlipsQuery = useMemoFirebase(() => {
-        if (!user || !firestore) return null;
-        return query(collection(firestore, `users/${user.uid}/bet_slips`), orderBy('createdAt', 'desc'));
-    }, [user, firestore]);
-
-    const { data: betSlips, isLoading: slipsLoading, error: slipsError } = useCollection(betSlipsQuery);
-
+    const [betSlips, setBetSlips] = useState<any[] | null>(null);
+    const [slipsLoading, setSlipsLoading] = useState(true);
+    const [slipsError, setSlipsError] = useState<string | null>(null);
+    
     const [freshMatchesData, setFreshMatchesData] = useState<Record<string, any>>({});
     const [isFetchingMatches, setIsFetchingMatches] = useState(false);
+
+    const fetchBetSlips = useCallback(async () => {
+        if (!user) {
+            setSlipsLoading(false);
+            setBetSlips([]);
+            return;
+        }
+        setSlipsLoading(true);
+        const { data, error } = await supabase
+            .from('bet_slips')
+            .select('*')
+            .eq('user_id', user.uid)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            setSlipsError('No se pudieron cargar tus pronósticos.');
+            console.error('Error fetching bet slips:', error);
+        } else {
+            setBetSlips(data);
+        }
+        setSlipsLoading(false);
+    }, [user]);
+
+    useEffect(() => {
+        fetchBetSlips();
+    }, [fetchBetSlips]);
+
 
     useEffect(() => {
         if (betSlips && betSlips.length > 0) {
@@ -79,14 +97,23 @@ export function MyPredictions() {
         });
     }, [betSlips, freshMatchesData]);
 
-    const handleDelete = (slipId: string) => {
-        if (!user || !firestore) return;
-        const slipRef = doc(firestore, `users/${user.uid}/bet_slips`, slipId);
-        deleteDocumentNonBlocking(slipRef);
-        toast({
-            title: "Pronóstico Eliminado",
-            description: "Tu pronóstico múltiple ha sido eliminado.",
-        });
+    const handleDelete = async (slipId: string) => {
+        if (!user) return;
+        const { error } = await supabase.from('bet_slips').delete().eq('id', slipId);
+        
+        if (error) {
+             toast({
+                variant: "destructive",
+                title: "Error al Eliminar",
+                description: "No se pudo eliminar el pronóstico.",
+            });
+        } else {
+            setBetSlips(prev => prev?.filter(s => s.id !== slipId) ?? null);
+            toast({
+                title: "Pronóstico Eliminado",
+                description: "Tu pronóstico múltiple ha sido eliminado.",
+            });
+        }
     };
 
     const getSelectionStatus = (selection: any) => {
@@ -120,7 +147,7 @@ export function MyPredictions() {
             return `- ${predictionText} (${teams})`;
         }).join('\n');
 
-        const shareText = `Mi Pronóstico (Valor: ${slip.totalOdds.toFixed(2)}):\n${selectionLines}\n\nPronóstico deportivo (opinión personal).\nNo es una apuesta ni implica dinero real.`;
+        const shareText = `Mi Pronóstico (Valor: ${slip.total_odds.toFixed(2)}):\n${selectionLines}\n\nPronóstico deportivo (opinión personal).\nNo es una apuesta ni implica dinero real.`;
 
         try {
             if (navigator.share) {
@@ -186,7 +213,7 @@ export function MyPredictions() {
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>Error al cargar pronósticos</AlertTitle>
                         <AlertDescription>
-                            No se pudieron cargar tus pronósticos. Por favor, intenta de nuevo más tarde.
+                            {slipsError}
                         </AlertDescription>
                     </Alert>
                 </CardContent>
@@ -247,12 +274,12 @@ export function MyPredictions() {
                                     <div className="flex justify-between items-center w-full pr-4">
                                         <div className="flex flex-col text-left">
                                             <span className="font-semibold">{slip.selections.length} {slip.selections.length > 1 ? 'Selecciones' : 'Selección'}</span>
-                                            <span className="text-sm text-muted-foreground">{format(slip.createdAt.toDate(), 'dd MMMM, yyyy')}</span>
+                                            <span className="text-sm text-muted-foreground">{format(new Date(slip.created_at), 'dd MMMM, yyyy')}</span>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className='text-right'>
                                                 <div className="font-semibold text-sm">Valor total (referencial)</div>
-                                                <div className="text-lg font-bold text-primary">{slip.totalOdds.toFixed(2)}</div>
+                                                <div className="text-lg font-bold text-primary">{slip.total_odds.toFixed(2)}</div>
                                             </div>
                                             {statusBadge}
                                         </div>

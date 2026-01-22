@@ -1,31 +1,69 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useUser, useFirestore } from '@/firebase/hooks';
-import { useDoc } from '@/firebase/firestore/use-doc';
-import { doc, type Timestamp } from 'firebase/firestore';
-import { useMemoFirebase } from '@/firebase/provider';
+import { useState, useEffect, useMemo } from 'react';
+import { useUser } from '@/firebase/hooks';
+import { supabase } from '@/lib/supabase';
 
-// Define the shape of the user profile data from Firestore
+// Define the shape of the user profile data from Supabase
 interface UserProfileData {
-    donationExpiry?: Timestamp;
+    id: string;
+    email?: string;
+    name?: string;
+    photo_url?: string;
+    donation_expiry?: string; // Supabase returns timestamps as ISO strings
 }
 
 export function useUserProfile() {
   const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
+  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
+  const [isProfileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<Error | null>(null);
+  
+  useEffect(() => {
+    // If Firebase user is loading, we wait.
+    if (isUserLoading) {
+        setProfileLoading(true);
+        return;
+    }
 
-  const userDocRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return doc(firestore, `users/${user.uid}`);
-  }, [user, firestore]);
+    // If there is no Firebase user, there is no profile to fetch.
+    if (!user) {
+        setUserProfile(null);
+        setProfileLoading(false);
+        return;
+    }
+    
+    const fetchUserProfile = async () => {
+        setProfileLoading(true);
+        setProfileError(null);
 
-  const { data: userProfile, isLoading: isProfileLoading, error: profileError } = useDoc<UserProfileData>(userDocRef);
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.uid)
+            .single();
+
+        if (error) {
+            // It's possible the profile doesn't exist yet if signup flow is interrupted.
+            // We don't treat "not found" as a critical error.
+            if (error.code !== 'PGRST116') {
+                 console.error("Error fetching user profile from Supabase", error);
+                 setProfileError(error as any);
+            }
+        }
+        
+        setUserProfile(data);
+        setProfileLoading(false);
+    };
+
+    fetchUserProfile();
+
+  }, [user, isUserLoading]);
+
 
   const isDonor = useMemo(() => {
-    if (!userProfile || !userProfile.donationExpiry) return false;
-    // Firestore Timestamps have a toDate() method
-    const expiryDate = userProfile.donationExpiry.toDate();
+    if (!userProfile || !userProfile.donation_expiry) return false;
+    const expiryDate = new Date(userProfile.donation_expiry);
     return expiryDate > new Date();
   }, [userProfile]);
 
@@ -35,6 +73,6 @@ export function useUserProfile() {
     isLoading: isUserLoading || isProfileLoading,
     error: profileError,
     isDonor,
-    donationExpiry: userProfile?.donationExpiry,
+    donationExpiry: userProfile?.donation_expiry ? new Date(userProfile.donation_expiry) : null,
   };
 }

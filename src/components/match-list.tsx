@@ -10,12 +10,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { getMatchStats } from "@/app/actions/getRoundData";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/context/BetSlipContext";
-import { useUser, useFirestore } from "@/firebase/hooks";
+import { useUser } from "@/firebase/hooks";
 import { Button } from "./ui/button";
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "./ui/table";
 import { useUserProfile } from "@/hooks/use-user-profile";
-import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 
 const MatchDaySkeleton = () => (
@@ -126,7 +126,6 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
   const { user } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const { isDonor } = useUserProfile();
  
@@ -172,7 +171,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             toast({ title: "¡Pronóstico copiado!", description: "¡Ahora compártelo con tus amigos!" });
         }
 
-        if (user && firestore) {
+        if (user) {
           if (isDonor) {
             toast({
               title: "¡Gracias por compartir!",
@@ -181,13 +180,17 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             return;
           }
 
-          const userDocRef = doc(firestore, `users/${user.uid}`);
           const newExpiryDate = new Date();
           newExpiryDate.setDate(newExpiryDate.getDate() + 1);
 
-          await updateDoc(userDocRef, {
-              donationExpiry: Timestamp.fromDate(newExpiryDate)
-          });
+          const { error } = await supabase
+            .from('users')
+            .update({ donation_expiry: newExpiryDate.toISOString() })
+            .eq('id', user.uid);
+
+          if (error) {
+            throw error;
+          }
 
           toast({
               title: "¡Recompensa Obtenida!",

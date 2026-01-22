@@ -1,136 +1,15 @@
 /**
- * This ruleset defines the security model for the Match Tracker application.
- *
- * Core Philosophy:
- * The security model follows a principle of least privilege, segregating private user data
- * from publicly accessible application data. It enforces strict user ownership for all
- * personal information while allowing open read access to shared content like leagues and matches.
- * All write operations are restricted to prevent unauthorized data manipulation.
- *
- * Data Structure:
- * - /users/{userId}: Contains private user profile information. Each user's data is
- *   sandboxed within their own document, accessible only by them.
- * - /leagues/{leagueId}: A top-level collection for all sports leagues. This data is
- *   intended for public consumption.
- * - /leagues/{leagueId}/matches/{matchId}: A subcollection containing match data. Matches
- *   are nested under their respective leagues to maintain a clear relational structure and
- *   facilitate secure, efficient queries.
- *
- * Key Security Decisions:
- * - User Data Privacy: A user can only access their own document in the /users collection.
- *   Listing users is explicitly disallowed to prevent user enumeration attacks.
- * - Public Read Access: League and match data is publicly readable by anyone, including
- *   unauthenticated users, to support the application's core feature of displaying sports data.
- * - Restricted Writes: All write operations (create, update, delete) are disabled by default
- *   for public collections (/leagues, /matches) until a clear ownership or administrative
- *   model is defined in the data schema (e.g., by adding a 'creatorId' field). This
- *   ensures a secure-by-default posture.
- * - Relational Integrity: On creation, a user's document must contain an 'id' field that
- *   matches their authentication UID, ensuring a permanent, verifiable link between the
- *   authentication identity and the database record. This 'id' field is immutable.
- *
+ * This ruleset is now simplified as most data has been migrated to Supabase.
+ * Firestore is no longer used for storing user profiles, donation claims, or match data.
+ * These rules are kept as a placeholder but do not actively secure critical data,
+ * as that is handled by Supabase policies or application logic.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ----------------------------------------------------------------------
-    // Helper Functions
-    // ----------------------------------------------------------------------
-
-    /**
-     * Checks if a user is authenticated.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * Checks if the currently authenticated user's UID matches the provided userId.
-     * This is the primary mechanism for verifying data ownership.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * Checks for ownership on an existing document. Used for update and delete
-     * operations to prevent acting on non-existent data.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    // ----------------------------------------------------------------------
-    // User Data Rules
-    // ----------------------------------------------------------------------
-
-    /**
-     * @description Controls access to a user's private profile document. Only the
-     *              document owner can read, create, update, or delete their own data.
-     * @path /users/{userId}
-     * @allow (create) A new user (uid: 'user_abc') creating their own profile document at /users/user_abc.
-     * @deny (get) A signed-in user (uid: 'user_xyz') trying to read /users/user_abc.
-     * @principle Restricts access to a user's own data tree.
-     */
-    match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    // ----------------------------------------------------------------------
-    // Donation Claim Rules
-    // ----------------------------------------------------------------------
-
-    /**
-     * @description Controls access to donation claims. Any authenticated user can
-     *              create a claim for themselves. Reading and updating is restricted.
-     * @path /donation_claims/{claimId}
-     */
-    match /donation_claims/{claimId} {
-      allow list, get, update, delete: if false;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-    }
-
-    // ----------------------------------------------------------------------
-    // League and Match Data Rules
-    // ----------------------------------------------------------------------
-
-    /**
-     * @description Controls access to league documents. Leagues are public to read
-     *              for all users, but writes are disabled pending a schema update.
-     * @path /leagues/{leagueId}
-     * @allow (get) Any user (authenticated or not) reading a league document.
-     * @deny (create) Any user trying to create a new league document.
-     * @principle Provides public read access while enforcing a secure-by-default posture for writes.
-     */
-    match /leagues/{leagueId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'League' entity is missing an 'ownerId' or 'creatorId' field.
-      allow create: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-
-      /**
-       * @description Controls access to match subcollections. Matches are public to read,
-       *              but writes are disabled pending a schema update for ownership.
-       * @path /leagues/{leagueId}/matches/{matchId}
-       * @allow (list) Any user listing all matches for a given league.
-       * @deny (update) Any user trying to update the score of a match.
-       * @principle Inherits public-read access from its parent, maintaining a secure default for writes.
-       */
-      match /matches/{matchId} {
-        allow get: if true;
-        allow list: if true;
-        // CRITICAL: Cannot implement owner-only writes. The 'Match' entity is missing an 'ownerId' or 'creatorId' field.
-        allow create: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-        allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-        allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
-      }
+    // All paths are locked down by default as data is now in Supabase.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

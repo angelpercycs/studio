@@ -9,11 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { Trash2 } from 'lucide-react';
 import { useBetSlip } from '@/context/BetSlipContext';
 import { useUser } from '@/firebase/hooks';
-import { addDocumentNonBlocking } from '@/firebase';
-import { collection } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/hooks';
 import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 export function BetSlip() {
     const { 
@@ -27,12 +25,11 @@ export function BetSlip() {
     } = useBetSlip();
 
     const { user } = useUser();
-    const firestore = useFirestore();
     const { toast } = useToast();
     const [amount, setAmount] = useState<number | string>('');
 
     const handleSaveSlip = async () => {
-        if (!user || !firestore) {
+        if (!user) {
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -49,39 +46,38 @@ export function BetSlip() {
             return;
         }
         
-        try {
-            const betSlipsCollection = collection(firestore, `users/${user.uid}/bet_slips`);
-            await addDocumentNonBlocking(betSlipsCollection, {
-                selections: selections.map(s => ({
-                    matchId: s.matchId,
-                    match: { 
-                        team1: { name: s.match.team1?.name },
-                        team2: { name: s.match.team2?.name },
-                        team1_score: s.match.team1_score,
-                        team2_score: s.match.team2_score,
-                    },
-                    prediction: s.prediction,
-                    odds: s.odds,
-                })),
-                totalOdds: totalOdds,
-                createdAt: new Date(),
-                status: 'pending', // pending, won, lost
-            });
+        const { error } = await supabase.from('bet_slips').insert({
+            user_id: user.uid,
+            selections: selections.map(s => ({
+                matchId: s.matchId,
+                match: { 
+                    team1: { name: s.match.team1?.name },
+                    team2: { name: s.match.team2?.name },
+                    team1_score: s.match.team1_score,
+                    team2_score: s.match.team2_score,
+                },
+                prediction: s.prediction,
+                odds: s.odds,
+            })),
+            total_odds: totalOdds,
+            created_at: new Date().toISOString(),
+            status: 'pending', // pending, won, lost
+        });
 
+        if (error) {
+            console.error("Error saving bet slip to Supabase:", error);
+            toast({
+                variant: "destructive",
+                title: "Error al guardar",
+                description: "No se pudo guardar el pronóstico. Inténtalo de nuevo.",
+            });
+        } else {
             toast({
                 title: "Pronóstico Guardado",
                 description: "Tu combinada ha sido guardada en tu historial.",
             });
             clearSelections();
             setIsSlipOpen(false);
-
-        } catch (error) {
-             console.error("Error saving bet slip:", error);
-            toast({
-                variant: "destructive",
-                title: "Error al guardar",
-                description: "No se pudo guardar el pronóstico. Inténtalo de nuevo.",
-            });
         }
     };
 

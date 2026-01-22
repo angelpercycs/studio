@@ -111,29 +111,13 @@
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profile information. Access is restricted to the user identified by {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
-      },
-      {
         "path": "/leagues/{leagueId}",
         "definition": {
           "entityName": "League",
           "schema": {
             "$ref": "#/backend/entities/League"
           },
-          "description": "Stores league information. Publicly accessible for read, but restricted write access.",
+          "description": "Stores league information. This data is now managed in Supabase.",
           "params": [
             {
               "name": "leagueId",
@@ -149,7 +133,7 @@
           "schema": {
             "$ref": "#/backend/entities/Match"
           },
-          "description": "Stores match data associated with a specific league. Access control is based on league membership (if applicable).",
+          "description": "Stores match data. This data is now managed in Supabase.",
           "params": [
             {
               "name": "leagueId",
@@ -163,6 +147,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to be secure, scalable, and easily debuggable, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC, and QAPs. User data is stored under `/users/{userId}` for private access. Leagues are stored in a top-level `/leagues` collection. Matches, which are related to leagues in a 1:N relationship, are stored in a subcollection `/leagues/{leagueId}/matches`. This design supports listing matches by league securely. Authorization Independence is achieved because access to matches depends only on the user's authentication status and potentially denormalized league membership, avoiding `get()` calls to parent documents during rule evaluation.  QAPs are supported via structural segregation, keeping data with different access requirements in separate collections.  Specifically, user data is separated from league and match data.  Global roles, should they be needed in the future, can be added via dedicated collections like `/roles_admin/{uid}`."
+    "reasoning": "The application uses Firebase for Authentication, but all application data (Leagues, Matches, User Profiles, etc.) is stored in Supabase to avoid Firebase's billing setup requirements for Firestore. The structure in backend.json is kept for entity reference but the Firestore-specific paths are deprecated."
   }
 }

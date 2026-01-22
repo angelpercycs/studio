@@ -7,11 +7,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useUser, useFirestore } from '@/firebase/hooks';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser } from '@/firebase/hooks';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 const claimSchema = z.object({
   kofiEmail: z.string().email({ message: 'Por favor, introduce un email válido.' }),
@@ -20,7 +20,6 @@ const claimSchema = z.object({
 
 export function ClaimRewardForm() {
     const { user, isUserLoading } = useUser();
-    const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
 
@@ -33,25 +32,28 @@ export function ClaimRewardForm() {
     });
 
     async function onSubmit(values: z.infer<typeof claimSchema>) {
-        if (!user || !firestore) {
+        if (!user) {
             toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para reclamar.' });
             return;
         }
 
-        try {
-            await addDoc(collection(firestore, 'donation_claims'), {
-                userId: user.uid,
-                userEmail: user.email,
-                kofiEmail: values.kofiEmail,
+        const { error } = await supabase
+            .from('donation_claims')
+            .insert({
+                user_id: user.uid,
+                user_email: user.email,
+                kofi_email: values.kofiEmail,
                 message: values.message,
                 status: 'pending',
-                claimedAt: serverTimestamp(),
+                claimed_at: new Date().toISOString(),
             });
+
+        if (error) {
+            console.error('Error sending claim to Supabase:', error);
+            toast({ variant: 'destructive', title: 'Error', description: 'No se pudo enviar la reclamación. Por favor, inténtalo de nuevo.' });
+        } else {
             toast({ title: 'Reclamación enviada', description: 'Hemos recibido tu solicitud. La revisaremos y activaremos tu mes premium en las próximas horas. ¡Gracias por tu apoyo!' });
             router.push('/');
-        } catch (error) {
-            console.error('Error sending claim:', error);
-            toast({ variant: 'destructive', title: 'Error', description: 'No se pudo enviar la reclamación. Por favor, inténtalo de nuevo.' });
         }
     }
 
