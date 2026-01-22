@@ -26,5 +26,5 @@ export const AffiliateBanner: React.FC<AffiliateBannerProps> = ({ scriptSrc }) =
         }
     }, [scriptSrc]);
 
-    return <div ref={containerRef} className="w-[300px] h-[250px] flex justify-center items-center" />;
+    return <div ref={containerRef} className="w-[300px] h-[100px] flex justify-center items-center" />;
 };
