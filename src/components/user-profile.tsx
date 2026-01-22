@@ -51,8 +51,8 @@ export function UserProfile() {
   }
   
   const expiryDate = donationExpiry ? format(donationExpiry, "d MMM yyyy", { locale: es }) : null;
-  const displayName = user.displayName || userProfile?.name;
-  const photoURL = user.photoURL || userProfile?.photo_url;
+  const displayName = userProfile?.name || user.displayName;
+  const photoURL = userProfile?.photo_url || user.photoURL;
 
 
   return (

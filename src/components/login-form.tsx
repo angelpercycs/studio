@@ -8,7 +8,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { getAdditionalUserInfo, UserCredential } from "firebase/auth";
+import { UserCredential } from "firebase/auth";
 import { supabase } from "@/lib/supabase";
 
 export function LoginForm() {
@@ -41,12 +41,13 @@ export function LoginForm() {
     e.preventDefault();
     if (!auth) return;
     try {
+      let userCredential: UserCredential;
       if (isSignUp) {
-        const userCredential = await initiateEmailSignUp(auth, email, password);
-        await createUserDocument(userCredential);
+        userCredential = await initiateEmailSignUp(auth, email, password);
       } else {
-        await initiateEmailSignIn(auth, email, password);
+        userCredential = await initiateEmailSignIn(auth, email, password);
       }
+      await createUserDocument(userCredential);
       router.push('/');
     } catch (error: any) {
       toast({
