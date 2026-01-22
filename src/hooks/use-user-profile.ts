@@ -8,7 +8,6 @@ import { useMemoFirebase } from '@/firebase/provider';
 
 // Define the shape of the user profile data from Firestore
 interface UserProfileData {
-    // Add other profile fields if they exist
     donationExpiry?: Timestamp;
 }
 
@@ -36,5 +35,6 @@ export function useUserProfile() {
     isLoading: isUserLoading || isProfileLoading,
     error: profileError,
     isDonor,
+    donationExpiry: userProfile?.donationExpiry,
   };
 }

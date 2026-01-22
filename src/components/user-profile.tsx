@@ -1,6 +1,7 @@
 "use client";
 
-import { useUser, useAuth } from "@/firebase/hooks";
+import { useUserProfile } from "@/hooks/use-user-profile";
+import { useAuth } from "@/firebase/hooks";
 import { signOut } from "firebase/auth";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -14,6 +15,9 @@ import {
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Skeleton } from "./ui/skeleton";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Star } from "lucide-react";
 
 function getInitials(name?: string | null) {
   if (!name) return "";
@@ -25,7 +29,7 @@ function getInitials(name?: string | null) {
 }
 
 export function UserProfile() {
-  const { user, isUserLoading } = useUser();
+  const { user, isLoading, isDonor, donationExpiry } = useUserProfile();
   const auth = useAuth();
 
   const handleSignOut = () => {
@@ -34,7 +38,7 @@ export function UserProfile() {
     }
   };
 
-  if (isUserLoading) {
+  if (isLoading) {
     return <Skeleton className="h-10 w-24" />;
   }
 
@@ -45,6 +49,8 @@ export function UserProfile() {
       </Button>
     );
   }
+  
+  const expiryDate = donationExpiry ? format(donationExpiry.toDate(), "d MMM yyyy", { locale: es }) : null;
 
   return (
     <DropdownMenu>
@@ -68,6 +74,12 @@ export function UserProfile() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {isDonor && expiryDate && (
+           <DropdownMenuItem disabled className="text-yellow-500 focus:text-yellow-500">
+              <Star className="mr-2 h-4 w-4" />
+              <span>Premium hasta {expiryDate}</span>
+           </DropdownMenuItem>
+        )}
         <Link href="/mis-pronosticos">
             <DropdownMenuItem>
                 Mis Pronósticos
