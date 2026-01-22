@@ -82,6 +82,20 @@ service cloud.firestore {
     }
 
     // ----------------------------------------------------------------------
+    // Donation Claim Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description Controls access to donation claims. Any authenticated user can
+     *              create a claim for themselves. Reading and updating is restricted.
+     * @path /donation_claims/{claimId}
+     */
+    match /donation_claims/{claimId} {
+      allow list, get, update, delete: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // ----------------------------------------------------------------------
     // League and Match Data Rules
     // ----------------------------------------------------------------------
 

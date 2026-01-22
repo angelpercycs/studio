@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Skeleton } from "./ui/skeleton";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Star } from "lucide-react";
+import { Gem, Star } from "lucide-react";
 
 function getInitials(name?: string | null) {
   if (!name) return "";
@@ -83,6 +83,12 @@ export function UserProfile() {
         <Link href="/mis-pronosticos">
             <DropdownMenuItem>
                 Mis Pronósticos
+            </DropdownMenuItem>
+        </Link>
+        <Link href="/reclamar-recompensa">
+            <DropdownMenuItem>
+                <Gem className="mr-2 h-4 w-4" />
+                Reclamar Recompensa
             </DropdownMenuItem>
         </Link>
         <DropdownMenuSeparator />

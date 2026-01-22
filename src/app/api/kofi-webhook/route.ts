@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 
 /**
  * Ko-fi Webhook endpoint (Currently Inactive).
- * This endpoint is reserved for future automatic donation processing.
- * For now, donation rewards are handled manually.
+ * This endpoint is reserved for manual donation processing.
+ * Automatic processing has been disabled to simplify the architecture.
  */
 export async function POST(req: NextRequest) {
-  // The webhook functionality is currently disabled in favor of a manual process.
-  // This endpoint returns a success message to Ko-fi to prevent retries,
-  // but does not perform any action.
-  return NextResponse.json({ success: true, message: 'Webhook inactivo. Procesamiento manual.' }, { status: 200 });
+  // The automatic webhook functionality is currently disabled.
+  // The new process involves the user manually claiming their reward via a form.
+  // This endpoint remains but does no action.
+  return NextResponse.json({ success: true, message: 'Webhook inactivo. El usuario debe reclamar la recompensa manualmente.' }, { status: 200 });
 }

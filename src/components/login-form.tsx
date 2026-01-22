@@ -2,27 +2,50 @@
 
 import { useState } from "react";
 import { initiateEmailSignIn, initiateEmailSignUp, initiateSocialSignIn } from "@/firebase";
-import { useAuth } from "@/firebase/hooks";
+import { useAuth, useFirestore } from "@/firebase/hooks";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { getAdditionalUserInfo, UserCredential } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const auth = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
+
+  const createUserDocument = async (userCredential: UserCredential) => {
+    if (!firestore) return;
+
+    const user = userCredential.user;
+    const userDocRef = doc(firestore, `users/${user.uid}`);
+
+    try {
+        await setDoc(userDocRef, {
+            id: user.uid,
+            email: user.email,
+            name: user.displayName || user.email?.split('@')[0],
+            googleId: user.providerData.find(p => p.providerId === 'google.com')?.uid || null,
+        }, { merge: true }); // Merge true to be safe
+    } catch (error) {
+        console.error("Error creating user document:", error);
+        // We don't toast this error as it's a background task for the user
+    }
+  };
 
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
     try {
       if (isSignUp) {
-        await initiateEmailSignUp(auth, email, password);
+        const userCredential = await initiateEmailSignUp(auth, email, password);
+        await createUserDocument(userCredential);
       } else {
         await initiateEmailSignIn(auth, email, password);
       }
@@ -40,9 +63,14 @@ export function LoginForm() {
     if (!auth) return;
     try {
       const result = await initiateSocialSignIn(auth, provider);
-      if (result.user) {
-        router.push('/');
+      const additionalInfo = getAdditionalUserInfo(result);
+
+      if (additionalInfo?.isNewUser) {
+        await createUserDocument(result);
       }
+
+      router.push('/');
+
     } catch (error: any) {
         if (error.code !== 'auth/popup-closed-by-user') {
             toast({
