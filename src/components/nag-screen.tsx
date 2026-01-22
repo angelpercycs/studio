@@ -52,7 +52,7 @@ export function NagScreen({ open, step, onDeclineDonation, onFinalClose, onAccep
 
   const donationContent = {
     title: "¿Cansado de los anuncios? Apóyanos.",
-    description: "Fútbol Stats Zone se mantiene gracias a usuarios como tú. Si te registras y haces una donación (desde $1), desactivaremos TODA la publicidad de tu cuenta durante un mes.",
+    description: "Fútbol Stats Zone se mantiene gracias a usuarios como tú. Si te registras y haces una donación (desde $1), puedes obtener un mes sin publicidad. Importante: Después de donar, envíame un email a tuemail@ejemplo.com con el correo electrónico de tu cuenta para activar tu mes premium.",
     primaryActionText: "Registrarme / Donar y quitar anuncios",
     secondaryActionText: "No, gracias. Continuaré con anuncios."
   };
