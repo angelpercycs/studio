@@ -167,6 +167,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
         if (navigator.share) {
             await navigator.share(shareData);
         } else {
+            // Fallback for desktop browsers
             await navigator.clipboard.writeText(shareData.text);
             toast({ title: "¡Pronóstico copiado!", description: "¡Ahora compártelo con tus amigos!" });
         }
@@ -201,8 +202,11 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             })
         }
     } catch (err: any) {
+        // The user might cancel the share action, which is fine. We only log other errors.
         if (err.name !== 'AbortError') {
-            console.error("Error al compartir", err);
+            console.error("Error sharing or applying reward:", err);
+            // We're not showing a user-facing error here to avoid confusion.
+            // The reward is a bonus, so failing silently is acceptable.
         }
     }
   };

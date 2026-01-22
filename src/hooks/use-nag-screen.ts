@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useUserProfile } from './use-user-profile';
 import { useLocalStorageWithExpiry } from './use-local-storage-with-expiry';
 
-const NAG_FREQUENCY_PAGE_VIEWS = 5; // Show every 5 page views
+const NAG_FREQUENCY_PAGE_VIEWS = 2; // Show every 2 page views
 const NAG_DECLINE_EXPIRY_DAYS = 7; // Don't show for 7 days if declined
 
 export function useNagScreen() {
