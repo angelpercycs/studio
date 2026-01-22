@@ -14,7 +14,7 @@ const AdsenseUnit = () => {
     }, []);
 
     return (
-        <div className="flex justify-center items-center bg-muted/50 rounded-md flex-1 min-h-[250px] min-w-0">
+        <div className="flex justify-center bg-muted/50 rounded-md flex-1 min-h-[50px] min-w-0">
             <ins className="adsbygoogle"
                 style={{ display: 'block' }}
                 data-ad-client="ca-pub-5144766807318748"
@@ -29,7 +29,7 @@ const TerraAdUnit = () => {
     // This component will render the Terra/Betsson ad.
     // The script is from effectivegatecpm.com, which the user refers to as 'Terra'.
     return (
-        <div className="flex justify-center items-center bg-muted/50 rounded-md flex-1 min-h-[250px] min-w-0">
+        <div className="flex justify-center bg-muted/50 rounded-md flex-1 min-h-[50px] min-w-0">
              <AffiliateBanner scriptSrc="//pl28541828.effectivegatecpm.com/64/dc/83/64dc83486d297efc52e9102186b3a5e4.js" />
         </div>
     );
