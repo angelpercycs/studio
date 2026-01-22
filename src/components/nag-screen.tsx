@@ -27,15 +27,11 @@ export function NagScreen({ open, step, onDeclineDonation, onFinalClose, onAccep
   const router = useRouter();
 
   const handlePrimaryAction = () => {
-    if (!user) {
-      router.push('/login');
+    if (step === 'donation') {
+        window.open(KOFI_LINK, '_blank');
+        router.push('/reclamar-recompensa');
     } else {
-       if (step === 'donation') {
-           window.open(KOFI_LINK, '_blank');
-           router.push('/reclamar-recompensa');
-       } else {
-           router.push('/');
-       }
+        router.push('/login');
     }
     onAccept();
   };
@@ -52,16 +48,16 @@ export function NagScreen({ open, step, onDeclineDonation, onFinalClose, onAccep
 
   const donationContent = {
     title: "¿Cansado de los anuncios? Apóyanos.",
-    description: "Fútbol Stats Zone se mantiene gracias a usuarios como tú. Si te registras y haces una donación (desde $1), puedes obtener un mes sin publicidad. Importante: Después de donar, ve a 'Reclamar Recompensa' en tu menú de usuario para activar tu mes premium.",
-    primaryActionText: "Registrarme / Donar y quitar anuncios",
-    secondaryActionText: "No, gracias. Continuaré con anuncios."
+    description: "Fútbol Stats Zone se mantiene gracias a usuarios como tú. Con una donación (desde $3), puedes obtener un mes sin publicidad. Importante: Después de donar, ve a 'Reclamar Recompensa' para activar tu mes premium.",
+    primaryActionText: "Donar y quitar anuncios",
+    secondaryActionText: "No, gracias"
   };
 
   const shareContent = {
-    title: "Otra forma de apoyar (y ganar)",
-    description: "Entendido. ¿Sabías que también puedes obtener 24 horas sin anuncios? Solo tienes que registrarte, iniciar sesión y compartir uno de nuestros pronósticos. ¡Es gratis y ayudas a que la web crezca!",
-    primaryActionText: "Registrarme para compartir",
-    secondaryActionText: "Entendido, gracias"
+    title: "Una alternativa gratis para ganar",
+    description: "Entendido. Si no deseas donar, hay otra forma de apoyar y obtener beneficios: regístrate e inicia sesión. Luego, al compartir uno de nuestros pronósticos, obtendrás 24 horas sin anuncios. ¡Es gratis y nos ayudas a crecer!",
+    primaryActionText: "Entendido, ¡voy a registrarme!",
+    secondaryActionText: "Cerrar"
   };
 
   const content = step === 'donation' ? donationContent : shareContent;
