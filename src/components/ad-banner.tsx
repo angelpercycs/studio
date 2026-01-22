@@ -27,11 +27,20 @@ const AdsenseUnit = () => {
 
 const SecondaryAdUnit = () => {
     return (
-         <div className="flex justify-center items-center min-h-[250px] w-full bg-muted/50 rounded-md">
-            <Script src="https://pl28541828.effectivegatecpm.com/64/dc/83/64dc83486d297efc52e9102186b3a5e4.js" />
+        <div className="flex justify-center items-center min-h-[250px] w-full bg-muted/50 rounded-md">
+            <div>
+                <div id="container-2f7c227362b55b9a8e03102434289895"></div>
+                <Script
+                    id="adsterra-invoke-script"
+                    strategy="afterInteractive"
+                    data-cfasync="false"
+                    src="https://pl28567635.effectivegatecpm.com/2f7c227362b55b9a8e03102434289895/invoke.js"
+                />
+            </div>
         </div>
-    )
-}
+    );
+};
+
 
 export const AdBanner = () => {
     return (
