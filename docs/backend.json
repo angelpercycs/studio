@@ -109,44 +109,7 @@
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/leagues/{leagueId}",
-        "definition": {
-          "entityName": "League",
-          "schema": {
-            "$ref": "#/backend/entities/League"
-          },
-          "description": "Stores league information. This data is now managed in Supabase.",
-          "params": [
-            {
-              "name": "leagueId",
-              "description": "The unique identifier for the league."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/leagues/{leagueId}/matches/{matchId}",
-        "definition": {
-          "entityName": "Match",
-          "schema": {
-            "$ref": "#/backend/entities/Match"
-          },
-          "description": "Stores match data. This data is now managed in Supabase.",
-          "params": [
-            {
-              "name": "leagueId",
-              "description": "The unique identifier for the league."
-            },
-            {
-              "name": "matchId",
-              "description": "The unique identifier for the match."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The application uses Firebase for Authentication, but all application data (Leagues, Matches, User Profiles, etc.) is stored in Supabase to avoid Firebase's billing setup requirements for Firestore. The structure in backend.json is kept for entity reference but the Firestore-specific paths are deprecated."
+    "structure": [],
+    "reasoning": "The application uses Firebase for Authentication, but all application data (Leagues, Matches, User Profiles, Bet Slips, Donation Claims) is stored in Supabase. The structure in backend.json is kept for entity reference, but Firestore is not used for data storage."
   }
 }
