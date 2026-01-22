@@ -1,0 +1,30 @@
+'use client';
+
+import { useNagScreen } from "@/hooks/use-nag-screen";
+import { NagScreen } from "./nag-screen";
+import Script from "next/script";
+
+export function AppManager({ children }: { children: React.ReactNode }) {
+    const { showNag, handleClose, isDonor, isLoading } = useNagScreen();
+
+    // To prevent flash of ads for donors, we wait until profile is loaded
+    const shouldShowAds = !isDonor;
+
+    return (
+        <>
+            {/* The NagScreen will only be visible when its internal `open` state is true */}
+            <NagScreen open={showNag} onClose={handleClose} />
+            
+            {children}
+            
+            {/* Conditional Ad Scripts */}
+            {!isLoading && shouldShowAds && (
+                <>
+                    <Script src="//pl28541828.effectivegatecpm.com/64/dc/83/64dc83486d297efc52e9102186b3a5e4.js" strategy="afterInteractive" />
+                    <Script src="https://pl28543748.effectivegatecpm.com/1e/99/84/1e9984d12d9bf39e479deff29d5fcab9.js" strategy="afterInteractive" />
+                    <Script src="https://www.effectivegatecpm.com/ige1e32sn7?key=1f87fff757404ef8ec600cb62cffdf98" strategy="afterInteractive" />
+                </>
+            )}
+        </>
+    );
+}

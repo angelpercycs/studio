@@ -13,6 +13,7 @@ import { useBetSlip } from "@/context/BetSlipContext";
 import { useUser } from "@/firebase/hooks";
 import { Button } from "./ui/button";
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "./ui/table";
+import { useUserProfile } from "@/hooks/use-user-profile";
 
 
 const MatchDaySkeleton = () => (
@@ -305,23 +306,34 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
 const FinalMatchAd = () => {
     const adRef = React.useRef<HTMLDivElement>(null);
     const loaded = React.useRef(false);
+    const { isDonor, isLoading } = useUserProfile();
 
     React.useEffect(() => {
-        if (adRef.current && !loaded.current) {
-            const script = document.createElement('script');
-            script.async = true;
-            script.setAttribute('data-cfasync', 'false');
-            script.src = "https://pl28543851.effectivegatecpm.com/0ac3b63e502ad4397e51b7e598cf59b4/invoke.js";
-            
-            const div = document.createElement('div');
-            div.id = "container-0ac3b63e502ad4397e51b7e598cf59b4";
-
-            adRef.current.appendChild(script);
-            adRef.current.appendChild(div);
-            
-            loaded.current = true;
+        if (isLoading || isDonor || !adRef.current || loaded.current) {
+            return;
         }
-    }, []);
+
+        const script = document.createElement('script');
+        script.async = true;
+        script.setAttribute('data-cfasync', 'false');
+        script.src = "https://pl28543851.effectivegatecpm.com/0ac3b63e502ad4397e51b7e598cf59b4/invoke.js";
+        
+        const div = document.createElement('div');
+        div.id = "container-0ac3b63e502ad4397e51b7e598cf59b4";
+
+        adRef.current.appendChild(script);
+        adRef.current.appendChild(div);
+        
+        loaded.current = true;
+    }, [isLoading, isDonor]);
+
+    if (isLoading) {
+        return <Skeleton className="h-24 w-full my-4" />;
+    }
+
+    if (isDonor) {
+        return null;
+    }
 
     return <div ref={adRef} className="flex justify-center my-4" />;
 };

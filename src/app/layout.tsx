@@ -11,6 +11,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { BetSlipProvider } from '@/context/BetSlipContext';
 import { BetSlip } from '@/components/bet-slip';
 import { Button } from '@/components/ui/button';
+import { AppManager } from '@/components/app-manager';
 
 export const metadata: Metadata = {
   title: 'Fútbol Stats Zone',
@@ -38,92 +39,94 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <FirebaseClientProvider>
           <BetSlipProvider>
-            <div className="flex min-h-screen flex-col bg-background text-foreground">
-              <header className="container mx-auto flex items-center justify-between py-4">
-                <Link href="/" className="flex items-center gap-4">
-                  <Image
-                    src="/icon.svg"
-                    alt="App Icon"
-                    width={48}
-                    height={48}
-                    className="baby-blue-icon"
-                  />
-                  <div>
-                    <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-                      Fútbol Stats Zone
-                    </h1>
-                    <p className="text-sm text-muted-foreground">Pronósticos de Fútbol</p>
-                  </div>
-                </Link>
-                <div className="flex items-center gap-4">
-                  <Link href="https://ko-fi.com/futbolstatszone" target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline">
-                      <Coffee className="mr-2 h-4 w-4" /> Apóyame
-                    </Button>
-                  </Link>
-                  <UserProfile />
-                </div>
-              </header>
-              <main className="container mx-auto flex-grow px-4 pb-8 md:pb-12">
-
-                <h2 className="text-xl font-semibold mb-4 text-center">Encuentros y Estadísticas Profesionales (Tipo StatsZone)</h2>
-
-                <Tabs defaultValue="daily" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <Link href="/" className='flex-1'>
-                      <TabsTrigger value="daily" className='w-full'>
-                        <CalendarDays className="mr-2 h-4 w-4 text-primary" />
-                        Encuentros del día
-                      </TabsTrigger>
-                    </Link>
-                    <Link href="/por-fecha" className='flex-1'>
-                      <TabsTrigger value="by-date" className='w-full'>
-                        <Calendar className="mr-2 h-4 w-4 text-primary" />
-                        Por fecha
-                      </TabsTrigger>
-                    </Link>
-                    <Link href="/por-liga" className='flex-1'>
-                      <TabsTrigger value="by-league" className='w-full'>
-                        <Shield className="mr-2 h-4 w-4 text-primary" />
-                        Por liga
-                      </TabsTrigger>
-                    </Link>
-                    <Link href="/por-favorito" className='flex-1'>
-                      <TabsTrigger value="by-favorite" className='w-full'>
-                        <Star className="mr-2 h-4 w-4 text-primary" />
-                        Favorito
-                      </TabsTrigger>
-                    </Link>
-                  </TabsList>
-                  <div className="mt-4">
-                    {children}
-                  </div>
-                </Tabs>
-              </main>
-              <footer className="w-full py-4 px-4 md:px-0 text-center text-xs text-muted-foreground space-y-4">
-                <div>
-                    <div className="mb-2">
-                      <p className="inline">© 2025 Fútbol Stats Zone. Todos los derechos reservados.</p>
-                      <Link href="/politica-de-privacidad" className="ml-4 underline hover:text-foreground">Política de Privacidad</Link>
-                      <Link href="/terminos-y-condiciones" className="ml-4 underline hover:text-foreground">Términos y Condiciones</Link>
+            <AppManager>
+              <div className="flex min-h-screen flex-col bg-background text-foreground">
+                <header className="container mx-auto flex items-center justify-between py-4">
+                  <Link href="/" className="flex items-center gap-4">
+                    <Image
+                      src="/icon.svg"
+                      alt="App Icon"
+                      width={48}
+                      height={48}
+                      className="baby-blue-icon"
+                    />
+                    <div>
+                      <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+                        Fútbol Stats Zone
+                      </h1>
+                      <p className="text-sm text-muted-foreground">Pronósticos de Fútbol</p>
                     </div>
-                    <p className="mb-2 font-semibold text-foreground">
-                        Los valores mostrados son solo referencias estadísticas y no representan apuestas ni pagos.
-                    </p>
-                    <p className="mb-2">
-                    Fútbol Stats Zone es un sitio independiente y no está afiliado, patrocinado ni autorizado por ninguna liga, federación, club o entidad oficial mencionada en este sitio.
-                    </p>
-                    <p className="mb-2">
-                    Todos los nombres de equipos, competiciones y marcas comerciales que puedan aparecer son propiedad de sus respectivos titulares y se utilizan únicamente con fines descriptivos e informativos.
-                    </p>
-                    <p>
-                    La información publicada en este sitio, incluyendo resultados y pronósticos, se ofrece únicamente con fines de entretenimiento y no constituye consejo de apuestas ni relación contractual alguna.
-                    </p>
-                </div>
-              </footer>
-            </div>
-            <BetSlip />
-            <Toaster />
+                  </Link>
+                  <div className="flex items-center gap-4">
+                    <Link href="https://ko-fi.com/futbolstatszone" target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline">
+                        <Coffee className="mr-2 h-4 w-4" /> Apóyame
+                      </Button>
+                    </Link>
+                    <UserProfile />
+                  </div>
+                </header>
+                <main className="container mx-auto flex-grow px-4 pb-8 md:pb-12">
+
+                  <h2 className="text-xl font-semibold mb-4 text-center">Encuentros y Estadísticas Profesionales (Tipo StatsZone)</h2>
+
+                  <Tabs defaultValue="daily" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <Link href="/" className='flex-1'>
+                        <TabsTrigger value="daily" className='w-full'>
+                          <CalendarDays className="mr-2 h-4 w-4 text-primary" />
+                          Encuentros del día
+                        </TabsTrigger>
+                      </Link>
+                      <Link href="/por-fecha" className='flex-1'>
+                        <TabsTrigger value="by-date" className='w-full'>
+                          <Calendar className="mr-2 h-4 w-4 text-primary" />
+                          Por fecha
+                        </TabsTrigger>
+                      </Link>
+                      <Link href="/por-liga" className='flex-1'>
+                        <TabsTrigger value="by-league" className='w-full'>
+                          <Shield className="mr-2 h-4 w-4 text-primary" />
+                          Por liga
+                        </TabsTrigger>
+                      </Link>
+                      <Link href="/por-favorito" className='flex-1'>
+                        <TabsTrigger value="by-favorite" className='w-full'>
+                          <Star className="mr-2 h-4 w-4 text-primary" />
+                          Favorito
+                        </TabsTrigger>
+                      </Link>
+                    </TabsList>
+                    <div className="mt-4">
+                      {children}
+                    </div>
+                  </Tabs>
+                </main>
+                <footer className="w-full py-4 px-4 md:px-0 text-center text-xs text-muted-foreground space-y-4">
+                  <div>
+                      <div className="mb-2">
+                        <p className="inline">© 2025 Fútbol Stats Zone. Todos los derechos reservados.</p>
+                        <Link href="/politica-de-privacidad" className="ml-4 underline hover:text-foreground">Política de Privacidad</Link>
+                        <Link href="/terminos-y-condiciones" className="ml-4 underline hover:text-foreground">Términos y Condiciones</Link>
+                      </div>
+                      <p className="mb-2 font-semibold text-foreground">
+                          Los valores mostrados son solo referencias estadísticas y no representan apuestas ni pagos.
+                      </p>
+                      <p className="mb-2">
+                      Fútbol Stats Zone es un sitio independiente y no está afiliado, patrocinado ni autorizado por ninguna liga, federación, club o entidad oficial mencionada en este sitio.
+                      </p>
+                      <p className="mb-2">
+                      Todos los nombres de equipos, competiciones y marcas comerciales que puedan aparecer son propiedad de sus respectivos dueños y se utilizan únicamente con fines descriptivos e informativos.
+                      </p>
+                      <p>
+                      La información publicada en este sitio, incluyendo resultados y pronósticos, se ofrece únicamente con fines de entretenimiento y no constituye consejo de apuestas ni relación contractual alguna.
+                      </p>
+                  </div>
+                </footer>
+              </div>
+              <BetSlip />
+              <Toaster />
+            </AppManager>
           </BetSlipProvider>
         </FirebaseClientProvider>
         {/* Google tag (gtag.js) */}
@@ -137,9 +140,6 @@ export default function RootLayout({
             gtag('config', 'G-1NDL1YXWW7');
           `}
         </Script>
-        <Script src="//pl28541828.effectivegatecpm.com/64/dc/83/64dc83486d297efc52e9102186b3a5e4.js" strategy="afterInteractive" />
-        <Script src="https://pl28543748.effectivegatecpm.com/1e/99/84/1e9984d12d9bf39e479deff29d5fcab9.js" strategy="afterInteractive" />
-        <Script src="https://www.effectivegatecpm.com/ige1e32sn7?key=1f87fff757404ef8ec600cb62cffdf98" strategy="afterInteractive" />
       </body>
     </html>
   );

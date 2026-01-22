@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef } from 'react';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import { Skeleton } from './ui/skeleton';
 
 const HighPerformanceAdUnit = () => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -37,6 +39,21 @@ const HighPerformanceAdUnit = () => {
 };
 
 export const AdBanner = () => {
+    const { isDonor, isLoading } = useUserProfile();
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center gap-4 w-full p-2">
+                <Skeleton className="w-[320px] h-[50px]" />
+                <Skeleton className="w-[320px] h-[50px]" />
+            </div>
+        );
+    }
+    
+    if (isDonor) {
+        return null;
+    }
+
     return (
         <div className="flex flex-col md:flex-row gap-4 w-full p-2 bg-muted/20 rounded-lg items-stretch justify-center">
             <HighPerformanceAdUnit />
