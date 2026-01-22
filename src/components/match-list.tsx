@@ -10,10 +10,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { getMatchStats } from "@/app/actions/getRoundData";
 import { cn } from "@/lib/utils";
 import { useBetSlip } from "@/context/BetSlipContext";
-import { useUser } from "@/firebase/hooks";
+import { useUser, useFirestore } from "@/firebase/hooks";
 import { Button } from "./ui/button";
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "./ui/table";
 import { useUserProfile } from "@/hooks/use-user-profile";
+import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
+import { useToast } from "@/hooks/use-toast";
 
 
 const MatchDaySkeleton = () => (
@@ -123,6 +125,9 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const [matchDetails, setMatchDetails] = useState<any | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
  
   const timeDisplay = match.match_date_iso
       ? new Date(match.match_date_iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
@@ -158,12 +163,49 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
     };
 
     try {
-      if (navigator.share) { await navigator.share(shareData); } 
-      else { 
-        await navigator.clipboard.writeText(shareData.text); 
-        alert("¡Pronóstico copiado al portapapeles!"); 
-      }
-    } catch (err) { console.error("Error al compartir", err); }
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            await navigator.clipboard.writeText(shareData.text);
+            toast({ title: "¡Pronóstico copiado!", description: "¡Ahora compártelo con tus amigos!" });
+        }
+
+        if (user && firestore) {
+            const userDocRef = doc(firestore, `users/${user.uid}`);
+            const userProfileSnap = await getDoc(userDocRef);
+            const userProfile = userProfileSnap.data();
+            const currentExpiry = userProfile?.donationExpiry?.toDate();
+
+            if (!currentExpiry || currentExpiry < new Date()) {
+                const newExpiryDate = new Date();
+                newExpiryDate.setDate(newExpiryDate.getDate() + 1);
+
+                await updateDoc(userDocRef, {
+                   donationExpiry: Timestamp.fromDate(newExpiryDate)
+                });
+
+                toast({
+                   title: "¡Recompensa Obtenida!",
+                   description: "Has desbloqueado 24 horas sin anuncios. ¡Gracias por compartir!",
+                });
+            } else {
+                 toast({
+                    title: "¡Gracias por compartir!",
+                    description: "Apreciamos que difundas la app.",
+                 });
+            }
+        } else if (!user) {
+            toast({
+                variant: 'default',
+                title: 'Inicia Sesión para obtener recompensas',
+                description: 'Los usuarios registrados obtienen beneficios al compartir.'
+            })
+        }
+    } catch (err: any) {
+        if (err.name !== 'AbortError') {
+            console.error("Error al compartir", err);
+        }
+    }
   };
 
 
