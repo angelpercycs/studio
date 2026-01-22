@@ -14,19 +14,17 @@ export function useNagScreen() {
     const [declined, setDeclined] = useLocalStorageWithExpiry<boolean>('nagDeclined', false, NAG_DECLINE_EXPIRY_DAYS);
 
     const [showNag, setShowNag] = useState(false);
+    const [nagStep, setNagStep] = useState<'donation' | 'share'>('donation');
     const pathname = usePathname();
     
     // Increment page views on navigation
     useEffect(() => {
-        // We need to wait until profile is loaded to start counting, to not count for donors
         if (isProfileLoading || isDonor) return;
 
-        // Don't count views on login/privacy pages etc.
         const ignoredPaths = ['/login', '/politica-de-privacidad', '/terminos-y-condiciones', '/mis-pronosticos'];
         if (ignoredPaths.includes(pathname)) {
             return;
         }
-        // Using a timeout to avoid counting rapid-fire navigations or component re-renders
         const timer = setTimeout(() => {
             setPageViews(views => (views || 0) + 1);
         }, 500);
@@ -36,7 +34,7 @@ export function useNagScreen() {
 
     // Determine if the nag screen should be shown
     useEffect(() => {
-        if (isProfileLoading) return; // Wait until we know user status
+        if (isProfileLoading) return;
         if (isDonor || declined) {
              setShowNag(false);
              return;
@@ -44,18 +42,35 @@ export function useNagScreen() {
         
         if (pageViews >= NAG_FREQUENCY_PAGE_VIEWS) {
             setShowNag(true);
+            setNagStep('donation'); // Reset to first step when showing
         }
-
     }, [isDonor, declined, pageViews, isProfileLoading]);
 
-    const handleClose = (wasDeclined: boolean) => {
+    const handleDeclineDonation = () => {
+        // Instead of closing, move to the next step
+        setNagStep('share');
+    };
+    
+    const handleFinalClose = () => {
         setShowNag(false);
-        setPageViews(0); // Reset page views so it starts counting again for the next time
-        if (wasDeclined) {
-            // If user explicitly declined, don't show for a week
-            setDeclined(true);
-        }
+        setPageViews(0);
+        setDeclined(true); // User has seen both messages, don't show for a week
+    };
+    
+    const handleAccept = () => {
+        setShowNag(false);
+        setPageViews(0);
+        // We don't set declined here, because they accepted an option.
+        // If they don't complete the donation, we might want to ask again sooner.
     };
 
-    return { showNag, handleClose, isDonor, isLoading: isProfileLoading };
+    return { 
+        showNag, 
+        nagStep,
+        handleDeclineDonation,
+        handleFinalClose,
+        handleAccept,
+        isDonor, 
+        isLoading: isProfileLoading 
+    };
 }

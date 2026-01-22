@@ -5,7 +5,15 @@ import { NagScreen } from "./nag-screen";
 import Script from "next/script";
 
 export function AppManager({ children }: { children: React.ReactNode }) {
-    const { showNag, handleClose, isDonor, isLoading } = useNagScreen();
+    const { 
+      showNag, 
+      nagStep,
+      handleDeclineDonation,
+      handleFinalClose,
+      handleAccept,
+      isDonor, 
+      isLoading 
+    } = useNagScreen();
 
     // To prevent flash of ads for donors, we wait until profile is loaded
     const shouldShowAds = !isDonor;
@@ -13,7 +21,13 @@ export function AppManager({ children }: { children: React.ReactNode }) {
     return (
         <>
             {/* The NagScreen will only be visible when its internal `open` state is true */}
-            <NagScreen open={showNag} onClose={handleClose} />
+            <NagScreen 
+                open={showNag} 
+                step={nagStep}
+                onDeclineDonation={handleDeclineDonation}
+                onFinalClose={handleFinalClose}
+                onAccept={handleAccept}
+            />
             
             {children}
             

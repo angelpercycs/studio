@@ -14,45 +14,73 @@ import { useUser } from "@/firebase/hooks";
 
 interface NagScreenProps {
   open: boolean;
-  onClose: (declined: boolean) => void;
+  step: 'donation' | 'share';
+  onDeclineDonation: () => void;
+  onFinalClose: () => void;
+  onAccept: () => void;
 }
 
 const KOFI_LINK = "https://ko-fi.com/futbolstatszone";
 
-export function NagScreen({ open, onClose }: NagScreenProps) {
+export function NagScreen({ open, step, onDeclineDonation, onFinalClose, onAccept }: NagScreenProps) {
   const { user } = useUser();
   const router = useRouter();
 
-  const handleDonateClick = () => {
+  const handlePrimaryAction = () => {
     if (!user) {
       router.push('/login');
     } else {
-      window.open(KOFI_LINK, '_blank');
+       if (step === 'donation') {
+           window.open(KOFI_LINK, '_blank');
+       } else {
+           // For share step, just take them to the main page to find a match to share.
+           router.push('/');
+       }
     }
-    onClose(false);
+    onAccept();
   };
 
-  const handleDeclineClick = () => {
-    onClose(true);
+  const handleSecondaryAction = () => {
+    if (step === 'donation') {
+        onDeclineDonation();
+    } else {
+        onFinalClose();
+    }
   };
-
+  
   if (!open) return null;
 
+  const donationContent = {
+    title: "¿Cansado de los anuncios? Apóyanos.",
+    description: "Fútbol Stats Zone se mantiene gracias a usuarios como tú. Si te registras y haces una donación (desde $1), desactivaremos TODA la publicidad de tu cuenta durante un mes.",
+    primaryActionText: "Registrarme / Donar y quitar anuncios",
+    secondaryActionText: "No, gracias. Continuaré con anuncios."
+  };
+
+  const shareContent = {
+    title: "Otra forma de apoyar (y ganar)",
+    description: "Entendido. ¿Sabías que también puedes obtener 24 horas sin anuncios? Solo tienes que registrarte, iniciar sesión y compartir uno de nuestros pronósticos. ¡Es gratis y ayudas a que la web crezca!",
+    primaryActionText: "Registrarme para compartir",
+    secondaryActionText: "Entendido, gracias"
+  };
+
+  const content = step === 'donation' ? donationContent : shareContent;
+
   return (
-    <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && handleDeclineClick()}>
+    <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onFinalClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>¿Cansado de los anuncios? Apóyanos.</AlertDialogTitle>
+          <AlertDialogTitle>{content.title}</AlertDialogTitle>
           <AlertDialogDescription>
-            Fútbol Stats Zone se mantiene gracias a usuarios como tú. Si te registras y haces una donación (desde 1 dólar), desactivaremos TODA la publicidad de tu cuenta durante un mes.
+            {content.description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex-col sm:flex-col sm:space-x-0 gap-2 pt-4">
-            <Button onClick={handleDonateClick} size="lg" className="w-full">
-              Registrarme / Donar y quitar anuncios
+            <Button onClick={handlePrimaryAction} size="lg" className="w-full">
+              {content.primaryActionText}
             </Button>
-            <Button onClick={handleDeclineClick} variant="link" className="text-muted-foreground">
-              No, gracias. Continuaré con anuncios.
+            <Button onClick={handleSecondaryAction} variant="link" className="text-muted-foreground">
+              {content.secondaryActionText}
             </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
