@@ -138,6 +138,7 @@ export default function RootLayout({
             gtag('config', 'G-1NDL1YXWW7');
           `}
         </Script>
+        <Script src="https://pl28541828.effectivegatecpm.com/64/dc/83/64dc83486d297efc52e9102186b3a5e4.js" strategy="afterInteractive" />
       </body>
     </html>
   );
