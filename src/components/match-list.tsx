@@ -128,6 +128,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { isDonor } = useUserProfile();
  
   const timeDisplay = match.match_date_iso
       ? new Date(match.match_date_iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
@@ -171,29 +172,27 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
         }
 
         if (user && firestore) {
-            const userDocRef = doc(firestore, `users/${user.uid}`);
-            const userProfileSnap = await getDoc(userDocRef);
-            const userProfile = userProfileSnap.data();
-            const currentExpiry = userProfile?.donationExpiry?.toDate();
+          if (isDonor) {
+            toast({
+              title: "¡Gracias por compartir!",
+              description: "Apreciamos que difundas la app.",
+            });
+            return;
+          }
 
-            if (!currentExpiry || currentExpiry < new Date()) {
-                const newExpiryDate = new Date();
-                newExpiryDate.setDate(newExpiryDate.getDate() + 1);
+          const userDocRef = doc(firestore, `users/${user.uid}`);
+          const newExpiryDate = new Date();
+          newExpiryDate.setDate(newExpiryDate.getDate() + 1);
 
-                await updateDoc(userDocRef, {
-                   donationExpiry: Timestamp.fromDate(newExpiryDate)
-                });
+          await updateDoc(userDocRef, {
+              donationExpiry: Timestamp.fromDate(newExpiryDate)
+          });
 
-                toast({
-                   title: "¡Recompensa Obtenida!",
-                   description: "Has desbloqueado 24 horas sin anuncios. ¡Gracias por compartir!",
-                });
-            } else {
-                 toast({
-                    title: "¡Gracias por compartir!",
-                    description: "Apreciamos que difundas la app.",
-                 });
-            }
+          toast({
+              title: "¡Recompensa Obtenida!",
+              description: "Has desbloqueado 24 horas sin anuncios. ¡Gracias por compartir!",
+          });
+        
         } else if (!user) {
             toast({
                 variant: 'default',
@@ -494,3 +493,5 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     </div>
   );
 };
+
+    
