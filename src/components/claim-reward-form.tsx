@@ -82,7 +82,7 @@ export function ClaimRewardForm() {
             <CardHeader>
                 <CardTitle>Reclamar Mes Premium</CardTitle>
                 <CardDescription>
-                    ¡Gracias por tu donación! Por favor, completa el siguiente formulario para que podamos activar tu mes sin anuncios.
+                    ¡Gracias por tu donación! Por favor, completa el siguiente formulario para que podamos activar tu mes sin publicidad.
                 </CardDescription>
             </CardHeader>
             <CardContent>

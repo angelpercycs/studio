@@ -194,7 +194,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
 
           toast({
               title: "¡Recompensa Obtenida!",
-              description: "Has desbloqueado 24 horas sin anuncios. ¡Gracias por compartir!",
+              description: "Has desbloqueado 24 horas sin publicidad. ¡Gracias por compartir!",
           });
         
         } else if (!user) {
