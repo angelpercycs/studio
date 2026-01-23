@@ -351,44 +351,6 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   );
 }
 
-const FinalMatchAd = () => {
-    if (true) return null;
-
-    const adRef = React.useRef<HTMLDivElement>(null);
-    const loaded = React.useRef(false);
-    const { isDonor, isLoading } = useUserProfile();
-
-    React.useEffect(() => {
-        if (isLoading || isDonor || !adRef.current || loaded.current) {
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.async = true;
-        script.setAttribute('data-cfasync', 'false');
-        script.src = "https://pl28543851.effectivegatecpm.com/0ac3b63e502ad4397e51b7e598cf59b4/invoke.js";
-        
-        const div = document.createElement('div');
-        div.id = "container-0ac3b63e502ad4397e51b7e598cf59b4";
-
-        adRef.current.appendChild(script);
-        adRef.current.appendChild(div);
-        
-        loaded.current = true;
-    }, [isLoading, isDonor]);
-
-    if (isLoading) {
-        return <Skeleton className="h-24 w-full my-4" />;
-    }
-
-    if (isDonor) {
-        return null;
-    }
-
-    return <div ref={adRef} className="flex justify-center my-4" />;
-};
-
-
 export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode }) => {
   if (loading) {
     return <MatchDaySkeleton />;
@@ -498,7 +460,6 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
           </React.Fragment>
         )
       })}
-      <FinalMatchAd />
     </div>
   );
 };

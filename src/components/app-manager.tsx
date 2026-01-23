@@ -1,8 +1,19 @@
 'use client';
 
+import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useNagScreen } from "@/hooks/use-nag-screen";
 import { NagScreen } from "./nag-screen";
-import Script from "next/script";
+
+// Añade una declaración global para el objeto `window` de Ezoic para satisfacer a TypeScript
+declare global {
+    interface Window {
+        ezstandalone?: {
+            cmd?: any[];
+            showAds: () => void;
+        };
+    }
+}
 
 export function AppManager({ children }: { children: React.ReactNode }) {
     const { 
@@ -15,7 +26,20 @@ export function AppManager({ children }: { children: React.ReactNode }) {
       isLoading 
     } = useNagScreen();
 
+    const pathname = usePathname();
     const shouldShowAds = !isDonor;
+
+    // Este efecto se ejecuta en cada cambio de página (gracias a `pathname`) y cuando
+    // el estado de los anuncios del usuario cambia. Le dice a Ezoic que muestre los anuncios.
+    useEffect(() => {
+        if (!isLoading && shouldShowAds && window.ezstandalone?.cmd) {
+            window.ezstandalone.cmd.push(function () {
+                if (window.ezstandalone) {
+                    window.ezstandalone.showAds();
+                }
+            });
+        }
+    }, [pathname, isLoading, shouldShowAds]);
 
     return (
         <>
@@ -28,14 +52,6 @@ export function AppManager({ children }: { children: React.ReactNode }) {
             />
             
             {children}
-            
-            {!isLoading && shouldShowAds && false && (
-                <>
-                    <Script src="//pl28541828.effectivegatecpm.com/64/dc/83/64dc83486d297efc52e9102186b3a5e4.js" strategy="afterInteractive" />
-                    <Script src="https://pl28543748.effectivegatecpm.com/1e/99/84/1e9984d12d9bf39e479deff29d5fcab9.js" strategy="afterInteractive" />
-                    <Script src="https://www.effectivegatecpm.com/ige1e32sn7?key=1f87fff757404ef8ec600cb62cffdf98" strategy="afterInteractive" />
-                </>
-            )}
         </>
     );
 }
