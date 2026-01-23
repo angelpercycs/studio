@@ -9,6 +9,8 @@ const HighPerformanceAdUnit = () => {
     const scriptsAdded = useRef(false);
 
     useEffect(() => {
+        if (true) return;
+
         const container = containerRef.current;
 
         if (container && !scriptsAdded.current) {
@@ -39,6 +41,8 @@ const HighPerformanceAdUnit = () => {
 };
 
 export const AdBanner = () => {
+    if (true) return null;
+    
     const { isDonor, isLoading } = useUserProfile();
 
     if (isLoading) {

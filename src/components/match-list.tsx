@@ -352,6 +352,8 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
 }
 
 const FinalMatchAd = () => {
+    if (true) return null;
+
     const adRef = React.useRef<HTMLDivElement>(null);
     const loaded = React.useRef(false);
     const { isDonor, isLoading } = useUserProfile();
@@ -500,5 +502,3 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
     </div>
   );
 };
-
-    
