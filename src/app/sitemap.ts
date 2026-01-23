@@ -17,7 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { url: `${baseUrl}/por-favorito`, changeFrequency: 'daily', priority: 0.8, lastModified },
         { url: `${baseUrl}/login`, changeFrequency: 'monthly', priority: 0.5, lastModified },
         { url: `${baseUrl}/mis-pronosticos`, changeFrequency: 'monthly', priority: 0.5, lastModified },
-        { url: `${baseUrl}/politica-de-privacidad`, changeFrequency: 'yearly', priority: 0.3, lastModified },
+        { url: `${baseUrl}/privacy-policy`, changeFrequency: 'yearly', priority: 0.3, lastModified },
         { url: `${baseUrl}/terminos-y-condiciones`, changeFrequency: 'yearly', priority: 0.3, lastModified },
     ];
 

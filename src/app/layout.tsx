@@ -119,7 +119,7 @@ export default function RootLayout({
                   <div>
                       <div className="mb-2">
                         <p className="inline">© 2025 Fútbol Stats Zone. Todos los derechos reservados.</p>
-                        <Link href="/politica-de-privacidad" className="ml-4 underline hover:text-foreground">Política de Privacidad</Link>
+                        <Link href="/privacy-policy" className="ml-4 underline hover:text-foreground">Política de Privacidad</Link>
                         <Link href="/terminos-y-condiciones" className="ml-4 underline hover:text-foreground">Términos y Condiciones</Link>
                       </div>
                       <p className="mb-2 font-semibold text-foreground">
