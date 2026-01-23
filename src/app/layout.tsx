@@ -35,6 +35,21 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        <Script
+            id="ez-standalone-init"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+                __html: `
+                    window.ezstandalone = window.ezstandalone || {};
+                    ezstandalone.cmd = ezstandalone.cmd || [];
+                    ezstandalone.cmd.push(function() {
+                        ezstandalone.define(101);
+                        ezstandalone.enable();
+                        ezstandalone.display();
+                    });
+                `,
+            }}
+        />
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
@@ -140,6 +155,15 @@ export default function RootLayout({
             gtag('config', 'G-1NDL1YXWW7');
           `}
         </Script>
+        <Script
+            id="ezoic-loader"
+            strategy="lazyOnload"
+            dangerouslySetInnerHTML={{
+                __html: `
+                    (function(e,t,n){var r,i=e.getElementsByTagName(t)[0];if(e.getElementById(n))return;r=e.createElement(t);r.id=n;r.async=true;r.src="https://go.ezoic.net/ezoic/ezoic.js";i.parentNode.insertBefore(r,i)})(document,"script","ezoic-loader");
+                `,
+            }}
+        />
       </body>
     </html>
   );
