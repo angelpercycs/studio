@@ -34,7 +34,7 @@ export default function RootLayout({
         <Script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js" strategy="beforeInteractive"></Script>
         
         {/* Ezoic Header Script */}
-        <Script async src="//www.ezojs.com/ezoic/sa.min.js" strategy="beforeInteractive"></Script>
+        <Script src="//www.ezojs.com/ezoic/sa.min.js" strategy="beforeInteractive"></Script>
         <Script id="ezoic-inline" strategy="beforeInteractive">
           {`
             window.ezstandalone = window.ezstandalone || {};
