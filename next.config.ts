@@ -2,6 +2,15 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  async redirects() {
+    return [
+      {
+        source: '/ads.txt',
+        destination: 'https://srv.adstxtmanager.com/19390/fszscore.com',
+        permanent: true,
+      },
+    ]
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
