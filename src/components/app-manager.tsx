@@ -19,10 +19,8 @@ declare global {
 
 export function AppManager({ children }: { children: React.ReactNode }) {
     const { 
-      showNag, 
-      nagStep,
-      handleDeclineDonation,
-      handleFinalClose,
+      showNag,
+      handleClose,
       handleAccept,
       isDonor, 
       isLoading 
@@ -32,7 +30,7 @@ export function AppManager({ children }: { children: React.ReactNode }) {
     const shouldShowAds = !isDonor;
 
     // Este efecto se ejecuta en cada cambio de página (gracias a `pathname`) y cuando
-    // el estado de los anuncios del usuario cambia. Le dice a Ezoic que muestre los anuncios.
+    // el estado de la publicidad del usuario cambia. Le dice a Ezoic que muestre los anuncios.
     useEffect(() => {
         if (!isLoading && shouldShowAds && window.ezstandalone?.cmd) {
             window.ezstandalone.cmd.push(function () {
@@ -47,9 +45,7 @@ export function AppManager({ children }: { children: React.ReactNode }) {
         <>
             <NagScreen 
                 open={showNag} 
-                step={nagStep}
-                onDeclineDonation={handleDeclineDonation}
-                onFinalClose={handleFinalClose}
+                onClose={handleClose}
                 onAccept={handleAccept}
             />
             

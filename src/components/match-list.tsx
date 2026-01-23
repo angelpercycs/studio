@@ -125,9 +125,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   const [matchDetails, setMatchDetails] = useState<any | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
-  const { user } = useUser();
   const { toast } = useToast();
-  const { isDonor } = useUserProfile();
  
   const timeDisplay = match.match_date_iso
       ? new Date(match.match_date_iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
@@ -170,46 +168,15 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             await navigator.clipboard.writeText(shareData.text);
             toast({ title: "¡Pronóstico copiado!", description: "¡Ahora compártelo con tus amigos!" });
         }
-
-        if (user) {
-          if (isDonor) {
-            toast({
-              title: "¡Gracias por compartir!",
-              description: "Apreciamos que difundas la app.",
-            });
-            return;
-          }
-
-          const newExpiryDate = new Date();
-          newExpiryDate.setDate(newExpiryDate.getDate() + 1);
-
-          const { error } = await supabase
-            .from('users')
-            .update({ donation_expiry: newExpiryDate.toISOString() })
-            .eq('id', user.uid);
-
-          if (error) {
-            throw error;
-          }
-
-          toast({
-              title: "¡Recompensa Obtenida!",
-              description: "Has desbloqueado 24 horas sin publicidad. ¡Gracias por compartir!",
-          });
-        
-        } else if (!user) {
-            toast({
-                variant: 'default',
-                title: 'Inicia Sesión para obtener recompensas',
-                description: 'Los usuarios registrados obtienen beneficios al compartir.'
-            })
-        }
     } catch (err: any) {
         // The user might cancel the share action, which is fine. We only log other errors.
         if (err.name !== 'AbortError') {
-            console.error("Error sharing or applying reward:", err);
-            // We're not showing a user-facing error here to avoid confusion.
-            // The reward is a bonus, so failing silently is acceptable.
+            console.error("Error sharing:", err);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "No se pudo compartir el pronóstico.",
+            });
         }
     }
   };

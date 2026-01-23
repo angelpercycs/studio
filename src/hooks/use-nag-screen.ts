@@ -14,7 +14,6 @@ export function useNagScreen() {
     const [declined, setDeclined] = useLocalStorageWithExpiry<boolean>('nagDeclined', false, NAG_DECLINE_EXPIRY_DAYS);
 
     const [showNag, setShowNag] = useState(false);
-    const [nagStep, setNagStep] = useState<'donation' | 'share'>('donation');
     const pathname = usePathname();
     
     // Increment page views on navigation
@@ -42,33 +41,23 @@ export function useNagScreen() {
         
         if (pageViews >= NAG_FREQUENCY_PAGE_VIEWS) {
             setShowNag(true);
-            setNagStep('donation'); // Reset to first step when showing
         }
     }, [isDonor, declined, pageViews, isProfileLoading]);
 
-    const handleDeclineDonation = () => {
-        // Instead of closing, move to the next step
-        setNagStep('share');
-    };
-    
-    const handleFinalClose = () => {
+    const handleClose = () => {
         setShowNag(false);
         setPageViews(0);
-        setDeclined(true); // User has seen both messages, don't show for a week
+        setDeclined(true);
     };
     
     const handleAccept = () => {
         setShowNag(false);
         setPageViews(0);
-        // We don't set declined here, because they accepted an option.
-        // If they don't complete the donation, we might want to ask again sooner.
     };
 
     return { 
         showNag, 
-        nagStep,
-        handleDeclineDonation,
-        handleFinalClose,
+        handleClose,
         handleAccept,
         isDonor, 
         isLoading: isProfileLoading 
