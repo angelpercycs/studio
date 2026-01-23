@@ -28,6 +28,12 @@ export default function PrivacyPolicyPage() {
             <h3 className="font-semibold mb-2">4. Enlaces a terceros</h3>
             <p>Este sitio contiene enlaces a sitios de apuestas (Betsson, Inkabet). No somos responsables de las prácticas de privacidad de dichos sitios.</p>
         </div>
+
+        <div>
+            <h3 className="font-semibold mb-2">5. Política de Privacidad de Ezoic</h3>
+            <p>Este sitio web utiliza los servicios de Ezoic para la monetización de anuncios. Puede revisar su política de privacidad a continuación:</p>
+            <span id="ezoic-privacy-policy-embed"></span>
+        </div>
       </CardContent>
     </Card>
   );
