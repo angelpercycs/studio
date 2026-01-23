@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
       {
         source: '/ads.txt',
         destination: 'https://srv.adstxtmanager.com/19390/fszscore.com',
-        permanent: true,
+        permanent: false,
       },
     ]
   },
