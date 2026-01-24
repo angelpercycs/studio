@@ -6,7 +6,7 @@ import { format, subDays, addDays } from 'date-fns';
 // sobre todas las páginas estáticas y dinámicas (basadas en fechas) disponibles.
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://www.fszscore.com';
+    const baseUrl = 'https://fszscore.com';
     const lastModified = new Date().toISOString();
 
     // 1. Rutas estáticas: Son las páginas principales que no cambian.
@@ -16,7 +16,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { url: `${baseUrl}/por-liga`, changeFrequency: 'daily', priority: 0.8, lastModified },
         { url: `${baseUrl}/por-favorito`, changeFrequency: 'daily', priority: 0.8, lastModified },
         { url: `${baseUrl}/login`, changeFrequency: 'monthly', priority: 0.5, lastModified },
-        { url: `${baseUrl}/mis-pronosticos`, changeFrequency: 'monthly', priority: 0.5, lastModified },
         { url: `${baseUrl}/privacy-policy`, changeFrequency: 'yearly', priority: 0.3, lastModified },
         { url: `${baseUrl}/terminos-y-condiciones`, changeFrequency: 'yearly', priority: 0.3, lastModified },
     ];
