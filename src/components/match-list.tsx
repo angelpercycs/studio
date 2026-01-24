@@ -121,7 +121,7 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
     );
 };
 
-const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean, user: any, canViewPrediction: boolean }) => {
+const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showAll }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean, user: any, canViewPrediction: boolean, showAll: boolean }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [matchDetails, setMatchDetails] = useState<any | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -194,6 +194,9 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction }: { m
     e.stopPropagation();
     onPinToggle?.(match.id);
   }
+
+  const shouldHidePredictionUI = hasPrediction && !canViewPrediction;
+
   return (
     <>
       <div className="flex items-start w-full px-4 py-3 group">
@@ -210,14 +213,14 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction }: { m
             <div onClick={handleOpenSheet} className="cursor-pointer hover:bg-muted/50 rounded p-2 -m-2">
                 <div className="flex items-center font-medium">
                     <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
-                    {hasPrediction && canViewPrediction && isFavoriteTeam1 && <BlinkingLight />}
+                    {hasPrediction && !shouldHidePredictionUI && isFavoriteTeam1 && <BlinkingLight />}
                 </div>
                 <div className="flex items-center font-medium">
                     <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
-                    {hasPrediction && canViewPrediction && isFavoriteTeam2 && <BlinkingLight />}
+                     {hasPrediction && !shouldHidePredictionUI && isFavoriteTeam2 && <BlinkingLight />}
                 </div>
             </div>
-            {hasPrediction && canViewPrediction ? (
+            {hasPrediction && !shouldHidePredictionUI ? (
               <div className="pt-2 text-xs">
                 <div className="font-semibold text-primary flex items-center gap-2">
                     <ShieldCheck className="h-3 w-3"/>
@@ -232,8 +235,10 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction }: { m
             ) : null}
         </div>
         
-        {hasPrediction && !canViewPrediction ? (
-          <div className="sm:flex text-xs text-center text-muted-foreground w-36 justify-center items-center">
+        {shouldHidePredictionUI && showAll ? (
+          <PredictionControls match={match} />
+        ) : shouldHidePredictionUI ? (
+           <div className="sm:flex text-xs text-center text-muted-foreground w-36 justify-center items-center">
             <Button asChild variant="outline" size="sm" className="h-full w-full">
               <Link href={user ? "https://ko-fi.com/futbolstatszone" : "/login"} target={user ? "_blank" : "_self"} rel={user ? "noopener noreferrer" : undefined}>
                   <Lock className="mr-2 h-3 w-3" />
@@ -261,7 +266,7 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction }: { m
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
             
-            {hasPrediction && canViewPrediction &&
+            {hasPrediction && !shouldHidePredictionUI &&
               <button 
                 onClick={(e) => { e.stopPropagation(); handleShare(); }}
                 className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-3 rounded-xl text-sm font-bold w-full shadow-lg hover:opacity-90"
@@ -271,7 +276,7 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction }: { m
               </button>
             }
 
-            {hasPrediction && canViewPrediction && (
+            {hasPrediction && !shouldHidePredictionUI && (
               <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
                   <p className="text-sm font-bold text-primary">
                     Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}
@@ -332,7 +337,7 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction }: { m
   );
 }
 
-export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner, user, isDonor, viewablePredictionIds }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode, user: any, isDonor: boolean, viewablePredictionIds: Set<string> }) => {
+export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner, user, isDonor, viewablePredictionIds, showAll }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode, user: any, isDonor: boolean, viewablePredictionIds: Set<string>, showAll: boolean }) => {
   if (loading) {
     return <MatchDaySkeleton />;
   }
@@ -356,7 +361,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
   if ((!matches || matches.length === 0) && (!pinnedMatches || pinnedMatches.length === 0)) {
     return (
       <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">
-        <p>No hay encuentros para mostrar para esta fecha.</p>
+        <p>No hay encuentros para mostrar para esta selección.</p>
       </div>
     );
   }
@@ -369,6 +374,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
         isPinned={pinnedMatchIds?.has(match.id)}
         user={user}
         canViewPrediction={viewablePredictionIds.has(match.id)}
+        showAll={showAll}
       />
   );
  

@@ -59,6 +59,7 @@ export function MatchesByDate() {
     setLoading(true);
     setError(null);
     setMatches([]);
+    setShowAll(false);
 
     const dateString = format(date, 'yyyy-MM-dd');
     const result = await getMatchesByDate(dateString);
@@ -91,8 +92,10 @@ export function MatchesByDate() {
     });
   }, []);
 
-  const predictionMatches = useMemo(() => {
-    return matches.filter(match => match.favorite);
+  const { predictionMatches, regularMatches } = useMemo(() => {
+    const predictionMatches = matches.filter(match => match.favorite);
+    const regularMatches = matches.filter(match => !match.favorite);
+    return { predictionMatches, regularMatches };
   }, [matches]);
   
   const viewablePredictionIds = useMemo(() => {
@@ -108,16 +111,17 @@ export function MatchesByDate() {
     return ids;
   }, [predictionMatches, user, isDonor]);
 
-  useEffect(() => {
-    setShowAll(predictionMatches.length === 0);
-  }, [predictionMatches.length]);
-
+  const defaultMatches = useMemo(() => {
+    if (isProfileLoading) return [];
+    return isDonor ? predictionMatches : regularMatches;
+  }, [isDonor, isProfileLoading, predictionMatches, regularMatches]);
+  
   const displayedMatches = useMemo(() => {
     if (showAll) {
       return matches;
     }
-    return predictionMatches;
-  }, [showAll, matches, predictionMatches]);
+    return defaultMatches;
+  }, [showAll, matches, defaultMatches]);
 
   const { pinned, unpinned } = useMemo(() => {
     const pinnedSet = new Set(pinnedMatchIds);
@@ -185,9 +189,9 @@ export function MatchesByDate() {
                   </div>
                   <AlertTitle className="font-semibold text-destructive-foreground">¡Hay {predictionMatches.length} Partidos con Pronóstico Estadístico!</AlertTitle>
                 </div>
-                 {matches.length > predictionMatches.length && (
+                 {regularMatches.length > 0 && (
                     <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                      {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
+                      {showAll ? 'Mostrar vista por defecto' : 'Mostrar todos los partidos'}
                     </Button>
                   )}
               </div>
@@ -213,6 +217,7 @@ export function MatchesByDate() {
               user={user}
               isDonor={isDonor}
               viewablePredictionIds={viewablePredictionIds}
+              showAll={showAll}
           />
         </CardContent>
       </Card>

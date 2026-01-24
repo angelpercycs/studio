@@ -101,6 +101,7 @@ export function MatchesByLeague() {
     setLeagues([]);
     setRounds([]);
     setMatches([]);
+    setShowAll(false);
     setError(null);
     if (!countryId) return;
 
@@ -125,6 +126,7 @@ export function MatchesByLeague() {
     setLeagues([]);
     setRounds([]);
     setMatches([]);
+    setShowAll(false);
     setError(null);
     if (!season || !finalCountryId) return;
 
@@ -143,6 +145,7 @@ export function MatchesByLeague() {
     setSelectedRound(null);
     setRounds([]);
     setMatches([]);
+    setShowAll(false);
     setError(null);
     if (!leagueId || !selectedSeason) return;
     
@@ -159,6 +162,7 @@ export function MatchesByLeague() {
   const handleRoundChange = useCallback(async (round: string) => {
     setSelectedRound(round);
     setMatches([]);
+    setShowAll(false);
     setError(null);
     if (!round || !selectedLeague || !selectedSeason) return;
     
@@ -185,8 +189,10 @@ export function MatchesByLeague() {
     });
   }, []);
 
-  const predictionMatches = useMemo(() => {
-    return matches.filter(match => match.favorite);
+  const { predictionMatches, regularMatches } = useMemo(() => {
+    const predictionMatches = matches.filter(match => match.favorite);
+    const regularMatches = matches.filter(match => !match.favorite);
+    return { predictionMatches, regularMatches };
   }, [matches]);
   
   const viewablePredictionIds = useMemo(() => {
@@ -202,16 +208,17 @@ export function MatchesByLeague() {
     return ids;
   }, [predictionMatches, user, isDonor]);
 
-  useEffect(() => {
-    setShowAll(predictionMatches.length === 0);
-  }, [predictionMatches.length]);
-
+  const defaultMatches = useMemo(() => {
+    if (isProfileLoading) return [];
+    return isDonor ? predictionMatches : regularMatches;
+  }, [isDonor, isProfileLoading, predictionMatches, regularMatches]);
+  
   const displayedMatches = useMemo(() => {
     if (showAll) {
       return matches;
     }
-    return predictionMatches;
-  }, [showAll, matches, predictionMatches]);
+    return defaultMatches;
+  }, [showAll, matches, defaultMatches]);
 
   const { pinned, unpinned } = useMemo(() => {
     const pinnedSet = new Set(pinnedMatchIds);
@@ -319,9 +326,9 @@ export function MatchesByLeague() {
                     </div>
                     <AlertTitle className="font-semibold text-destructive-foreground">¡Hay {predictionMatches.length} Partidos con Pronóstico Estadístico!</AlertTitle>
                   </div>
-                  {matches.length > predictionMatches.length && (
+                  {regularMatches.length > 0 && (
                     <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                      {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
+                      {showAll ? 'Mostrar vista por defecto' : 'Mostrar todos los partidos'}
                     </Button>
                   )}
                 </div>
@@ -354,6 +361,7 @@ export function MatchesByLeague() {
               user={user}
               isDonor={isDonor}
               viewablePredictionIds={viewablePredictionIds}
+              showAll={showAll}
             />
           ) : (
             <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">
