@@ -62,10 +62,14 @@ export function useUserProfile() {
 
 
   const isDonor = useMemo(() => {
+    // Hardcode owner email as premium
+    if (user?.email === 'percycsa@hotmail.com') {
+        return true;
+    }
     if (!userProfile || !userProfile.donation_expiry) return false;
     const expiryDate = new Date(userProfile.donation_expiry);
     return expiryDate > new Date();
-  }, [userProfile]);
+  }, [userProfile, user]);
 
   return {
     user,
