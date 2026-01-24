@@ -6,6 +6,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Loader2, Pin, ShieldCheck, Star, Lock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { getMatchStats } from "@/app/actions/getRoundData";
 import { cn } from "@/lib/utils";
@@ -17,6 +27,7 @@ import { useUserProfile } from "@/hooks/use-user-profile";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import Link from 'next/link';
+import { useRouter } from "next/navigation";
 
 
 const MatchDaySkeleton = () => (
@@ -123,10 +134,12 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
 
 const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showAll }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean, user: any, canViewPrediction: boolean, showAll: boolean }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [showRegisterAlert, setShowRegisterAlert] = useState(false);
   const [matchDetails, setMatchDetails] = useState<any | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
  
   const timeDisplay = match.match_date_iso
       ? new Date(match.match_date_iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
@@ -150,6 +163,14 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
       setDetailsLoading(false);
     }
   }, [match, matchDetails]);
+
+  const handleRowClick = () => {
+      if (!user) {
+          setShowRegisterAlert(true);
+      } else {
+          handleOpenSheet();
+      }
+  };
 
   const handleShare = async () => {
     const predictionText = `Pronóstico: ${isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}`;
@@ -210,7 +231,7 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
         )}
         <div className="w-16 text-muted-foreground text-center text-sm pt-1">{timeDisplay}</div>
         <div className="flex-grow space-y-1 text-sm">
-            <div onClick={handleOpenSheet} className="cursor-pointer hover:bg-muted/50 rounded p-2 -m-2">
+            <div onClick={handleRowClick} className="cursor-pointer hover:bg-muted/50 rounded p-2 -m-2">
                 <div className="flex items-center font-medium">
                     <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
                     {hasPrediction && !shouldHidePredictionUI && isFavoriteTeam1 && <BlinkingLight />}
@@ -235,10 +256,8 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
             ) : null}
         </div>
         
-        {shouldHidePredictionUI && showAll ? (
-          <PredictionControls match={match} />
-        ) : shouldHidePredictionUI ? (
-           <div className="sm:flex text-xs text-center text-muted-foreground w-36 justify-center items-center">
+        {shouldHidePredictionUI ? (
+          <div className="sm:flex text-xs text-center text-muted-foreground w-36 justify-center items-center">
             <Button asChild variant="outline" size="sm" className="h-full w-full">
               <Link href={user ? "https://ko-fi.com/futbolstatszone" : "/login"} target={user ? "_blank" : "_self"} rel={user ? "noopener noreferrer" : undefined}>
                   <Lock className="mr-2 h-3 w-3" />
@@ -247,8 +266,9 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
             </Button>
           </div>
         ) : (
-          <PredictionControls match={match} />
+          !hasPrediction || (hasPrediction && showAll) ? <PredictionControls match={match} /> : null
         )}
+
 
         <div className="flex flex-col items-center w-8 text-sm font-bold ml-4 text-foreground pt-1">
             <span>{match.team1_score ?? '-'}</span>
@@ -333,6 +353,23 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
           ) : null}
         </SheetContent>
       </Sheet>
+
+       <AlertDialog open={showRegisterAlert} onOpenChange={setShowRegisterAlert}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Acceso a Estadísticas</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      Para ver las clasificaciones y estadísticas detalladas del partido, necesitas crear una cuenta. ¡Es gratis y rápido!
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel>Cerrar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => router.push('/login')}>
+                      Registrarse
+                  </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
