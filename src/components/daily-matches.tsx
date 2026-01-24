@@ -36,7 +36,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
   const [loading, setLoading] = useState(isProfileLoading);
   const [error, setError] = useState<string | null>(initialError);
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches);
-  const [showAll, setShowAll] = useState(true);
+  const [showAll, setShowAll] = useState(false);
   
   useEffect(() => {
     setMatches(initialMatches);
@@ -69,32 +69,30 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
   const predictionMatches = useMemo(() => {
     return matches.filter(match => match.favorite);
   }, [matches]);
-  
-  const nonPredictionMatches = useMemo(() => {
-    return matches.filter(match => !match.favorite);
-  }, [matches]);
 
-  const visiblePredictionMatches = useMemo(() => {
-    if (isDonor) return predictionMatches;
-    if (user) {
-      const twentyPercentCount = Math.floor(predictionMatches.length * 0.2);
-      return predictionMatches.slice(0, twentyPercentCount);
+  const viewablePredictionIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!predictionMatches || predictionMatches.length === 0) return ids;
+
+    if (isDonor) {
+        predictionMatches.forEach(m => ids.add(m.id));
+    } else if (user) {
+        const twentyPercentCount = Math.floor(predictionMatches.length * 0.2);
+        predictionMatches.slice(0, twentyPercentCount).forEach(m => ids.add(m.id));
     }
-    return [];
+    return ids;
   }, [predictionMatches, user, isDonor]);
-
+  
   useEffect(() => {
-    setShowAll(visiblePredictionMatches.length === 0);
-  }, [visiblePredictionMatches]);
+    setShowAll(predictionMatches.length === 0);
+  }, [predictionMatches.length]);
 
   const displayedMatches = useMemo(() => {
     if (showAll) {
-      const allDisplayable = [...nonPredictionMatches, ...visiblePredictionMatches];
-      allDisplayable.sort((a, b) => new Date(a.match_date_iso).getTime() - new Date(b.match_date_iso).getTime());
-      return allDisplayable;
+      return matches;
     }
-    return visiblePredictionMatches;
-  }, [showAll, nonPredictionMatches, visiblePredictionMatches]);
+    return predictionMatches;
+  }, [showAll, matches, predictionMatches]);
 
   const { pinned, unpinned } = useMemo(() => {
     const pinnedSet = new Set(pinnedMatchIds);
@@ -114,8 +112,8 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
 
   const analysisMatches = useMemo(() => {
     const visibleMatchIds = new Set(displayedMatches.map(m => m.id));
-    return initialMatches.filter(match => match.text_analysis && visibleMatchIds.has(match.id));
-  }, [initialMatches, displayedMatches]);
+    return initialMatches.filter(match => match.text_analysis && visibleMatchIds.has(match.id) && viewablePredictionIds.has(match.id));
+  }, [initialMatches, displayedMatches, viewablePredictionIds]);
 
 
   return (
@@ -133,7 +131,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
                       </div>
                       <AlertTitle className="font-semibold text-destructive-foreground">¡Hay {predictionMatches.length} Partidos con Pronóstico Estadístico!</AlertTitle>
                     </div>
-                     {nonPredictionMatches.length > 0 && (
+                     {matches.length > predictionMatches.length && (
                         <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
                         {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
                         </Button>
@@ -142,9 +140,9 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
                    {!isDonor && (
                       <div className="text-destructive-foreground text-sm mt-2">
                           {user ? (
-                              <span>Dona para ver todos los pronósticos. <Link href="https://ko-fi.com/futbolstatszone" target="_blank" rel="noopener noreferrer" className="font-bold underline">Apoya aquí</Link></span>
+                              <span>Has desbloqueado {viewablePredictionIds.size} de {predictionMatches.length} pronósticos. <Link href="https://ko-fi.com/futbolstatszone" target="_blank" rel="noopener noreferrer" className="font-bold underline">Dona para ver todos.</Link></span>
                           ) : (
-                              <span><Link href="/login" className="font-bold underline">Regístrate gratis</Link> para ver el 20% de los pronósticos.</span>
+                              <span><Link href="/login" className="font-bold underline">Regístrate gratis</Link> para desbloquear tus primeros pronósticos.</span>
                           )}
                       </div>
                   )}
@@ -160,6 +158,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
                   adBanner={<AdBanner />}
                   user={user}
                   isDonor={isDonor}
+                  viewablePredictionIds={viewablePredictionIds}
               />
             </div>
         </CardContent>

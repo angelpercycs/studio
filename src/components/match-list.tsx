@@ -121,7 +121,7 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
     );
 };
 
-const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean }) => {
+const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean, user: any, canViewPrediction: boolean }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [matchDetails, setMatchDetails] = useState<any | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -132,9 +132,9 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
       ? new Date(match.match_date_iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
       : '--:--';
 
+  const hasPrediction = !!match.favorite;
   const isFavoriteTeam1 = match.favorite === 'team1';
   const isFavoriteTeam2 = match.favorite === 'team2';
-  const isFavorite = isFavoriteTeam1 || isFavoriteTeam2;
   
   const handleOpenSheet = useCallback(async () => {
     setIsSheetOpen(true);
@@ -210,14 +210,14 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             <div onClick={handleOpenSheet} className="cursor-pointer hover:bg-muted/50 rounded p-2 -m-2">
                 <div className="flex items-center font-medium">
                     <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
-                    {isFavoriteTeam1 && <BlinkingLight />}
+                    {hasPrediction && canViewPrediction && isFavoriteTeam1 && <BlinkingLight />}
                 </div>
                 <div className="flex items-center font-medium">
                     <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
-                    {isFavoriteTeam2 && <BlinkingLight />}
+                    {hasPrediction && canViewPrediction && isFavoriteTeam2 && <BlinkingLight />}
                 </div>
             </div>
-            {isFavorite ? (
+            {hasPrediction && canViewPrediction ? (
               <div className="pt-2 text-xs">
                 <div className="font-semibold text-primary flex items-center gap-2">
                     <ShieldCheck className="h-3 w-3"/>
@@ -232,7 +232,18 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             ) : null}
         </div>
         
-        <PredictionControls match={match} />
+        {hasPrediction && !canViewPrediction ? (
+          <div className="sm:flex text-xs text-center text-muted-foreground w-36 justify-center items-center">
+            <Button asChild variant="outline" size="sm" className="h-full w-full">
+              <Link href={user ? "https://ko-fi.com/futbolstatszone" : "/login"} target={user ? "_blank" : "_self"} rel={user ? "noopener noreferrer" : undefined}>
+                  <Lock className="mr-2 h-3 w-3" />
+                  {user ? "Dona para ver" : "Regístrate"}
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <PredictionControls match={match} />
+        )}
 
         <div className="flex flex-col items-center w-8 text-sm font-bold ml-4 text-foreground pt-1">
             <span>{match.team1_score ?? '-'}</span>
@@ -250,7 +261,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
             
-            {isFavorite &&
+            {hasPrediction && canViewPrediction &&
               <button 
                 onClick={(e) => { e.stopPropagation(); handleShare(); }}
                 className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-3 rounded-xl text-sm font-bold w-full shadow-lg hover:opacity-90"
@@ -260,7 +271,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
               </button>
             }
 
-            {isFavorite && (
+            {hasPrediction && canViewPrediction && (
               <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
                   <p className="text-sm font-bold text-primary">
                     Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}
@@ -321,7 +332,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   );
 }
 
-export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner, user, isDonor }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode, user: any, isDonor: boolean }) => {
+export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner, user, isDonor, viewablePredictionIds }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode, user: any, isDonor: boolean, viewablePredictionIds: Set<string> }) => {
   if (loading) {
     return <MatchDaySkeleton />;
   }
@@ -356,6 +367,8 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
         match={match}
         onPinToggle={onPinToggle}
         isPinned={pinnedMatchIds?.has(match.id)}
+        user={user}
+        canViewPrediction={viewablePredictionIds.has(match.id)}
       />
   );
  
