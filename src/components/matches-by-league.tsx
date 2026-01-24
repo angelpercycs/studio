@@ -9,6 +9,7 @@ import { MatchList } from "./match-list";
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { useUserProfile } from "@/hooks/use-user-profile";
+import { Button } from "./ui/button";
 
 interface Country {
   id: string;
@@ -54,6 +55,7 @@ export function MatchesByLeague() {
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
   const [selectedRound, setSelectedRound] = useState<string | null>(null);
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches());
+  const [showAll, setShowAll] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -165,6 +167,7 @@ export function MatchesByLeague() {
       setMatches([]);
     } else if (result && result.data) {
       setMatches(result.data);
+      setShowAll(!result.data.some((m: any) => m.favorite));
     }
     setLoading(prev => ({ ...prev, matches: false }));
   }, [selectedLeague, selectedSeason]);
@@ -182,9 +185,13 @@ export function MatchesByLeague() {
   }, []);
 
   const predictionMatches = useMemo(() => {
-    if (loading.matches) return [];
     return matches.filter(match => match.favorite);
-  }, [matches, loading.matches]);
+  }, [matches]);
+
+  const displayedMatches = useMemo(() => {
+      return showAll ? matches : predictionMatches;
+  }, [matches, predictionMatches, showAll]);
+
 
   const visiblePredictionIds = useMemo(() => {
     if (isDonor || !user) {
@@ -199,7 +206,7 @@ export function MatchesByLeague() {
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    matches.forEach(match => {
+    displayedMatches.forEach(match => {
       if (pinnedSet.has(match.id)) {
         pinned.push(match);
       } else {
@@ -208,7 +215,7 @@ export function MatchesByLeague() {
     });
     
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds]);
+  }, [displayedMatches, pinnedMatchIds]);
 
   const analysisMatches = useMemo(() => {
     return matches.filter(match => match.text_analysis);
@@ -299,6 +306,9 @@ export function MatchesByLeague() {
                     </div>
                     <AlertTitle className="font-semibold text-destructive-foreground">¡Hay {predictionMatches.length} Partidos con Pronóstico Estadístico!</AlertTitle>
                   </div>
+                  <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                    {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
+                  </Button>
                 </div>
               </Alert>
           )}

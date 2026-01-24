@@ -42,6 +42,7 @@ export function MatchesByDate() {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches);
+  const [showAll, setShowAll] = useState(true);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -65,6 +66,7 @@ export function MatchesByDate() {
       setError(result.error);
     } else if (result && result.data) {
       setMatches(result.data);
+      setShowAll(!result.data.some((m: any) => m.favorite));
     } else {
         setError("No se pudieron cargar los partidos. Por favor, inténtelo de nuevo más tarde.");
     }
@@ -90,9 +92,12 @@ export function MatchesByDate() {
   }, []);
 
   const predictionMatches = useMemo(() => {
-    if (loading) return [];
     return matches.filter(match => match.favorite);
-  }, [matches, loading]);
+  }, [matches]);
+
+  const displayedMatches = useMemo(() => {
+      return showAll ? matches : predictionMatches;
+  }, [matches, predictionMatches, showAll]);
 
   const visiblePredictionIds = useMemo(() => {
     if (isDonor || !user) {
@@ -107,7 +112,7 @@ export function MatchesByDate() {
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    matches.forEach(match => {
+    displayedMatches.forEach(match => {
       if (pinnedSet.has(match.id)) {
         pinned.push(match);
       } else {
@@ -116,7 +121,7 @@ export function MatchesByDate() {
     });
 
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds]);
+  }, [displayedMatches, pinnedMatchIds]);
 
   const analysisMatches = useMemo(() => {
     return matches.filter(match => match.text_analysis);
@@ -167,6 +172,9 @@ export function MatchesByDate() {
                   </div>
                   <AlertTitle className="font-semibold text-destructive-foreground">¡Hay {predictionMatches.length} Partidos con Pronóstico Estadístico!</AlertTitle>
                 </div>
+                 <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                  {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
+                </Button>
               </div>
             </Alert>
           )}

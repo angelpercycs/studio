@@ -34,7 +34,13 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
   const [loading, setLoading] = useState(isProfileLoading);
   const [error, setError] = useState<string | null>(initialError);
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches);
+  const [showAll, setShowAll] = useState(!initialMatches.some(m => m.favorite));
   
+  useEffect(() => {
+    setMatches(initialMatches);
+    setShowAll(!initialMatches.some(m => m.favorite));
+  }, [initialMatches]);
+
   useEffect(() => {
     setLoading(isProfileLoading);
   },[isProfileLoading]);
@@ -60,9 +66,12 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
   }, []);
 
   const predictionMatches = useMemo(() => {
-    if (loading) return [];
     return matches.filter(match => match.favorite);
-  }, [matches, loading]);
+  }, [matches]);
+
+  const displayedMatches = useMemo(() => {
+      return showAll ? matches : predictionMatches;
+  }, [matches, predictionMatches, showAll]);
 
   const visiblePredictionIds = useMemo(() => {
     // Donors see all predictions (handled by canViewPrediction prop), registered users see 20%
@@ -78,7 +87,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    matches.forEach(match => {
+    displayedMatches.forEach(match => {
       if (pinnedSet.has(match.id)) {
         pinned.push(match);
       } else {
@@ -87,7 +96,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
     });
     
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds]);
+  }, [displayedMatches, pinnedMatchIds]);
 
   const analysisMatches = useMemo(() => {
     return initialMatches.filter(match => match.text_analysis);
@@ -109,6 +118,9 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
                       </div>
                       <AlertTitle className="font-semibold text-destructive-foreground">¡Hay {predictionMatches.length} Partidos con Pronóstico Estadístico!</AlertTitle>
                     </div>
+                    <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
+                      {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
+                    </Button>
                   </div>
                 </Alert>
               )}
