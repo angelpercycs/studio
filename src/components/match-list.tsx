@@ -4,7 +4,7 @@ import * as React from "react";
 import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Loader2, Pin, ShieldCheck } from "lucide-react";
+import { AlertCircle, Loader2, Pin, ShieldCheck, Star, Lock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { getMatchStats } from "@/app/actions/getRoundData";
@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from ".
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import Link from 'next/link';
 
 
 const MatchDaySkeleton = () => (
@@ -120,7 +121,47 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
     );
 };
 
-const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean }) => {
+const LockedPrediction = ({ isRegistered }: { isRegistered: boolean }) => {
+  if (isRegistered) {
+    // Registered user, not a donor, and this prediction is locked
+    return (
+      <div className="pt-2 text-xs">
+        <div className="font-semibold text-amber-500 flex items-center gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/20">
+          <Star className="h-4 w-4 flex-shrink-0" />
+          <div className="flex-grow">
+            <span>Dona para ver todos los pronósticos.</span>
+            <Link
+              href="https://ko-fi.com/futbolstatszone"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1 font-bold underline hover:text-amber-400"
+            >
+              Apoya aquí
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Anonymous user
+  return (
+    <div className="pt-2 text-xs">
+      <div className="font-semibold text-primary flex items-center gap-2 p-2 rounded-md bg-primary/10 border border-primary/20">
+        <Lock className="h-4 w-4 flex-shrink-0" />
+        <div className="flex-grow">
+          <span>Regístrate para ver el 20% de los pronósticos.</span>
+          <Link href="/login" className="ml-1 font-bold underline hover:text-primary/80">
+            Regístrate gratis
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+const MatchRow = ({ match, onPinToggle, isPinned, canViewPrediction, isRegistered }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean, canViewPrediction: boolean, isRegistered: boolean }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [matchDetails, setMatchDetails] = useState<any | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -209,26 +250,30 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
             <div onClick={handleOpenSheet} className="cursor-pointer hover:bg-muted/50 rounded p-2 -m-2">
                 <div className="flex items-center font-medium">
                     <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
-                    {isFavoriteTeam1 && <BlinkingLight />}
+                    {canViewPrediction && isFavoriteTeam1 && <BlinkingLight />}
                 </div>
                 <div className="flex items-center font-medium">
                     <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
-                    {isFavoriteTeam2 && <BlinkingLight />}
+                    {canViewPrediction && isFavoriteTeam2 && <BlinkingLight />}
                 </div>
             </div>
-             {isFavorite && (
-              <div className="pt-2 text-xs">
-                <div className="font-semibold text-primary flex items-center gap-2">
-                    <ShieldCheck className="h-3 w-3"/>
-                    <span>Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}</span>
+            {isFavorite ? (
+              canViewPrediction ? (
+                <div className="pt-2 text-xs">
+                  <div className="font-semibold text-primary flex items-center gap-2">
+                      <ShieldCheck className="h-3 w-3"/>
+                      <span>Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}</span>
+                  </div>
+                  {match.text_analysis && (
+                      <a href={`#analysis-${match.id}`} className="mt-1 flex items-center text-xs font-semibold text-primary/90 hover:underline">
+                          Ver análisis detallado
+                      </a>
+                  )}
                 </div>
-                {match.text_analysis && (
-                    <a href={`#analysis-${match.id}`} className="mt-1 flex items-center text-xs font-semibold text-primary/90 hover:underline">
-                        Ver análisis detallado
-                    </a>
-                )}
-              </div>
-            )}
+              ) : (
+                <LockedPrediction isRegistered={isRegistered} />
+              )
+            ) : null}
         </div>
         
         <PredictionControls match={match} />
@@ -249,25 +294,33 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
             
-            <button 
-              onClick={(e) => { e.stopPropagation(); handleShare(); }}
-              className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-3 rounded-xl text-sm font-bold w-full shadow-lg hover:opacity-90"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
-              COMPARTIR PRONÓSTICO
-            </button>
+            {canViewPrediction && isFavorite &&
+              <button 
+                onClick={(e) => { e.stopPropagation(); handleShare(); }}
+                className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-3 rounded-xl text-sm font-bold w-full shadow-lg hover:opacity-90"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
+                COMPARTIR PRONÓSTICO
+              </button>
+            }
 
-            {(isFavorite) && (
-              <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
-                  <p className="text-sm font-bold text-primary">
-                    Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}
-                  </p>
-                  {match.text_analysis && (
-                    <p className="text-sm text-muted-foreground">
-                        <span className="font-semibold text-primary">Análisis:</span> {match.text_analysis}
+            {isFavorite && (
+              canViewPrediction ? (
+                <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
+                    <p className="text-sm font-bold text-primary">
+                      Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}
                     </p>
-                  )}
-              </div>
+                    {match.text_analysis && (
+                      <p className="text-sm text-muted-foreground">
+                          <span className="font-semibold text-primary">Análisis:</span> {match.text_analysis}
+                      </p>
+                    )}
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <LockedPrediction isRegistered={isRegistered} />
+                </div>
+              )
             )}
           </SheetHeader>
           {detailsLoading ? (
@@ -318,7 +371,7 @@ const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: 
   );
 }
 
-export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode }) => {
+export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner, user, isDonor, visiblePredictionIds }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode, user: any, isDonor: boolean, visiblePredictionIds: Set<string> }) => {
   if (loading) {
     return <MatchDaySkeleton />;
   }
@@ -346,6 +399,17 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
       </div>
     );
   }
+
+  const renderMatchRow = (match: any) => (
+      <MatchRow
+        key={match.id}
+        match={match}
+        onPinToggle={onPinToggle}
+        isPinned={pinnedMatchIds?.has(match.id)}
+        canViewPrediction={isDonor || (!!user && visiblePredictionIds.has(match.id))}
+        isRegistered={!!user}
+      />
+  );
  
   const PinnedMatchesComponent = () => (
     pinnedMatches && pinnedMatches.length > 0 && (
@@ -357,13 +421,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
             </div>
             <div>
               <div className="divide-y">
-                {pinnedMatches.map((match: any) =>
-                  <MatchRow
-                    key={match.id}
-                    match={match}
-                    onPinToggle={onPinToggle}
-                    isPinned={pinnedMatchIds?.has(match.id)}
-                  />)}
+                {pinnedMatches.map(renderMatchRow)}
               </div>
             </div>
           </CardContent>
@@ -412,13 +470,7 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
                 </div>
                 <div>
                   <div className="divide-y">
-                    {leagueMatches.map((match: any) =>
-                      <MatchRow
-                          key={match.id}
-                          match={match}
-                          onPinToggle={onPinToggle}
-                          isPinned={pinnedMatchIds?.has(match.id)}
-                      />)}
+                    {leagueMatches.map(renderMatchRow)}
                   </div>
                 </div>
               </CardContent>

@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { getCountries, getSeasonsByCountry, getLeaguesByCountryAndSeason, getRoundsForLeague, getMatchesByRound } from "@/app/actions/getRoundData";
 import { MatchList } from "./match-list";
 import { Skeleton } from "./ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "./ui/button";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { useUserProfile } from "@/hooks/use-user-profile";
 
 interface Country {
   id: string;
@@ -42,6 +42,7 @@ const getInitialPinnedMatches = (): Set<string> => {
 
 
 export function MatchesByLeague() {
+  const { user, isDonor, isLoading: isProfileLoading } = useUserProfile();
   const [countries, setCountries] = useState<Country[]>([]);
   const [seasons, setSeasons] = useState<string[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
@@ -52,7 +53,6 @@ export function MatchesByLeague() {
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
   const [selectedRound, setSelectedRound] = useState<string | null>(null);
-  const [showAll, setShowAll] = useState(true);
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches());
 
   useEffect(() => {
@@ -98,7 +98,6 @@ export function MatchesByLeague() {
     setRounds([]);
     setMatches([]);
     setError(null);
-    setShowAll(true);
     if (!countryId) return;
 
     setLoading(prev => ({ ...prev, seasons: true }));
@@ -123,7 +122,6 @@ export function MatchesByLeague() {
     setRounds([]);
     setMatches([]);
     setError(null);
-    setShowAll(true);
     if (!season || !finalCountryId) return;
 
     setLoading(prev => ({ ...prev, leagues: true }));
@@ -142,7 +140,6 @@ export function MatchesByLeague() {
     setRounds([]);
     setMatches([]);
     setError(null);
-    setShowAll(true);
     if (!leagueId || !selectedSeason) return;
     
     setLoading(prev => ({ ...prev, rounds: true }));
@@ -166,10 +163,8 @@ export function MatchesByLeague() {
     if (result && result.error) {
       setError(result.error);
       setMatches([]);
-      setShowAll(true);
     } else if (result && result.data) {
       setMatches(result.data);
-      setShowAll(!result.data.some(m => m.favorite));
     }
     setLoading(prev => ({ ...prev, matches: false }));
   }, [selectedLeague, selectedSeason]);
@@ -186,29 +181,34 @@ export function MatchesByLeague() {
     });
   }, []);
 
-  const favoriteMatches = useMemo(() => {
+  const predictionMatches = useMemo(() => {
     if (loading.matches) return [];
     return matches.filter(match => match.favorite);
   }, [matches, loading.matches]);
+
+  const visiblePredictionIds = useMemo(() => {
+    if (isDonor || !user) {
+        return new Set<string>();
+    }
+    const twentyPercentCount = Math.floor(predictionMatches.length * 0.2);
+    return new Set(predictionMatches.slice(0, twentyPercentCount).map(m => m.id));
+  }, [predictionMatches, user, isDonor]);
 
   const { pinned, unpinned } = useMemo(() => {
     const pinnedSet = new Set(pinnedMatchIds);
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    const sourceMatches = showAll ? matches : favoriteMatches;
-
     matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
         pinned.push(match);
+      } else {
+        unpinned.push(match);
       }
     });
-
-    const unpinnedSource = sourceMatches.filter(m => !pinnedSet.has(m.id));
-    unpinned.push(...unpinnedSource);
     
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds, showAll, favoriteMatches]);
+  }, [matches, pinnedMatchIds]);
 
   const analysisMatches = useMemo(() => {
     return matches.filter(match => match.text_analysis);
@@ -289,7 +289,7 @@ export function MatchesByLeague() {
             </div>
           </div>
           
-          {favoriteMatches.length > 0 && (
+          {predictionMatches.length > 0 && (
               <Alert variant="destructive" className="mb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -297,16 +297,13 @@ export function MatchesByLeague() {
                         <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
                         <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
                     </div>
-                    <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico! ({favoriteMatches.length})</AlertTitle>
+                    <AlertTitle className="font-semibold text-destructive-foreground">¡Hay {predictionMatches.length} Partidos con Pronóstico Estadístico!</AlertTitle>
                   </div>
-                  <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                    {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
-                  </Button>
                 </div>
               </Alert>
           )}
 
-          {loading.matches ? (
+          {loading.matches || isProfileLoading ? (
               <div className="space-y-4 mt-6">
                 {[...Array(5)].map((_, i) => (
                   <Skeleton key={i} className="h-20 w-full rounded-lg" />
@@ -320,6 +317,9 @@ export function MatchesByLeague() {
               loading={loading.matches}
               onPinToggle={handlePinToggle}
               pinnedMatchIds={pinnedMatchIds}
+              user={user}
+              isDonor={isDonor}
+              visiblePredictionIds={visiblePredictionIds}
             />
           ) : (
             <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">

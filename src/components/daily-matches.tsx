@@ -7,6 +7,7 @@ import { MatchList } from "@/components/match-list";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AdBanner } from "./ad-banner";
+import { useUserProfile } from "@/hooks/use-user-profile";
 
 const PINNED_MATCHES_STORAGE_KEY = 'pinnedDailyMatches';
 
@@ -28,12 +29,16 @@ function getInitialPinnedMatches(): Set<string> {
 };
 
 export function DailyMatches({ initialMatches, error: initialError }: { initialMatches: any[], error: string | null }) {
+  const { user, isDonor, isLoading: isProfileLoading } = useUserProfile();
   const [matches, setMatches] = useState<any[]>(initialMatches);
-  const [loading, setLoading] = useState(false); // No loading initially as data is passed
+  const [loading, setLoading] = useState(isProfileLoading);
   const [error, setError] = useState<string | null>(initialError);
-  const [showAll, setShowAll] = useState(!initialMatches.some(m => m.favorite));
   const [pinnedMatchIds, setPinnedMatchIds] = useState<Set<string>>(getInitialPinnedMatches);
   
+  useEffect(() => {
+    setLoading(isProfileLoading);
+  },[isProfileLoading]);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
         const expiry = new Date().getTime() + 2 * 24 * 60 * 60 * 1000;
@@ -54,29 +59,35 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
     });
   }, []);
 
-  const favoriteMatches = useMemo(() => {
+  const predictionMatches = useMemo(() => {
     if (loading) return [];
     return matches.filter(match => match.favorite);
   }, [matches, loading]);
+
+  const visiblePredictionIds = useMemo(() => {
+    // Donors see all predictions (handled by canViewPrediction prop), registered users see 20%
+    if (isDonor || !user) {
+        return new Set<string>();
+    }
+    const twentyPercentCount = Math.floor(predictionMatches.length * 0.2);
+    return new Set(predictionMatches.slice(0, twentyPercentCount).map(m => m.id));
+  }, [predictionMatches, user, isDonor]);
 
   const { pinned, unpinned } = useMemo(() => {
     const pinnedSet = new Set(pinnedMatchIds);
     const pinned: any[] = [];
     const unpinned: any[] = [];
 
-    const sourceMatches = showAll ? matches : favoriteMatches;
-
     matches.forEach(match => {
       if (pinnedSet.has(match.id)) {
         pinned.push(match);
+      } else {
+        unpinned.push(match);
       }
     });
-
-    const unpinnedSource = sourceMatches.filter(m => !pinnedSet.has(m.id));
-    unpinned.push(...unpinnedSource);
     
     return { pinned, unpinned };
-  }, [matches, pinnedMatchIds, showAll, favoriteMatches]);
+  }, [matches, pinnedMatchIds]);
 
   const analysisMatches = useMemo(() => {
     return initialMatches.filter(match => match.text_analysis);
@@ -88,7 +99,7 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
       <Card>
         <CardContent className="pt-6">
             <div className="mt-4">
-              {favoriteMatches.length > 0 && (
+              {predictionMatches.length > 0 && (
                 <Alert variant="destructive" className="mb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -96,11 +107,8 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
                           <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
                           <div className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></div>
                       </div>
-                      <AlertTitle className="font-semibold text-destructive-foreground">¡Partidos con Pronóstico Estadístico! ({favoriteMatches.length})</AlertTitle>
+                      <AlertTitle className="font-semibold text-destructive-foreground">¡Hay {predictionMatches.length} Partidos con Pronóstico Estadístico!</AlertTitle>
                     </div>
-                    <Button onClick={() => setShowAll(!showAll)} variant="outline" size="sm" className="bg-transparent text-destructive-foreground border-destructive-foreground/50 hover:bg-destructive-foreground/10">
-                      {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
-                    </Button>
                   </div>
                 </Alert>
               )}
@@ -112,6 +120,9 @@ export function DailyMatches({ initialMatches, error: initialError }: { initialM
                   onPinToggle={handlePinToggle}
                   pinnedMatchIds={pinnedMatchIds}
                   adBanner={<AdBanner />}
+                  user={user}
+                  isDonor={isDonor}
+                  visiblePredictionIds={visiblePredictionIds}
               />
             </div>
         </CardContent>
