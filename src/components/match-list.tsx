@@ -276,7 +276,11 @@ const MatchRow = ({ match, onPinToggle, isPinned, canViewPrediction, isRegistere
             ) : null}
         </div>
         
-        <PredictionControls match={match} />
+        {isFavorite && !canViewPrediction ? (
+          <div className="w-36 shrink-0" />
+        ) : (
+          <PredictionControls match={match} />
+        )}
 
         <div className="flex flex-col items-center w-8 text-sm font-bold ml-4 text-foreground pt-1">
             <span>{match.team1_score ?? '-'}</span>
