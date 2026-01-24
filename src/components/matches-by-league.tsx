@@ -10,6 +10,8 @@ import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { Button } from "./ui/button";
+import Link from "next/link";
+
 
 interface Country {
   id: string;
@@ -167,7 +169,6 @@ export function MatchesByLeague() {
       setMatches([]);
     } else if (result && result.data) {
       setMatches(result.data);
-      setShowAll(!result.data.some((m: any) => m.favorite));
     }
     setLoading(prev => ({ ...prev, matches: false }));
   }, [selectedLeague, selectedSeason]);
@@ -187,19 +188,32 @@ export function MatchesByLeague() {
   const predictionMatches = useMemo(() => {
     return matches.filter(match => match.favorite);
   }, [matches]);
+  
+  const nonPredictionMatches = useMemo(() => {
+    return matches.filter(match => !match.favorite);
+  }, [matches]);
+
+  const visiblePredictionMatches = useMemo(() => {
+    if (isDonor) return predictionMatches;
+    if (user) {
+      const twentyPercentCount = Math.floor(predictionMatches.length * 0.2);
+      return predictionMatches.slice(0, twentyPercentCount);
+    }
+    return [];
+  }, [predictionMatches, user, isDonor]);
+
+  useEffect(() => {
+    setShowAll(visiblePredictionMatches.length === 0);
+  }, [visiblePredictionMatches]);
 
   const displayedMatches = useMemo(() => {
-      return showAll ? matches : predictionMatches;
-  }, [matches, predictionMatches, showAll]);
-
-
-  const visiblePredictionIds = useMemo(() => {
-    if (isDonor || !user) {
-        return new Set<string>();
+    if (showAll) {
+      const allDisplayable = [...nonPredictionMatches, ...visiblePredictionMatches];
+      allDisplayable.sort((a, b) => new Date(a.match_date_iso).getTime() - new Date(b.match_date_iso).getTime());
+      return allDisplayable;
     }
-    const twentyPercentCount = Math.floor(predictionMatches.length * 0.2);
-    return new Set(predictionMatches.slice(0, twentyPercentCount).map(m => m.id));
-  }, [predictionMatches, user, isDonor]);
+    return visiblePredictionMatches;
+  }, [showAll, nonPredictionMatches, visiblePredictionMatches]);
 
   const { pinned, unpinned } = useMemo(() => {
     const pinnedSet = new Set(pinnedMatchIds);
@@ -218,8 +232,9 @@ export function MatchesByLeague() {
   }, [displayedMatches, pinnedMatchIds]);
 
   const analysisMatches = useMemo(() => {
-    return matches.filter(match => match.text_analysis);
-  }, [matches]);
+    const visibleMatchIds = new Set(displayedMatches.map(m => m.id));
+    return matches.filter(match => match.text_analysis && visibleMatchIds.has(match.id));
+  }, [matches, displayedMatches]);
 
 
   return (
@@ -296,7 +311,7 @@ export function MatchesByLeague() {
             </div>
           </div>
           
-          {predictionMatches.length > 0 && (
+          {predictionMatches.length > 0 && selectedRound && (
               <Alert variant="destructive" className="mb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -310,6 +325,15 @@ export function MatchesByLeague() {
                     {showAll ? 'Mostrar solo pronósticos' : 'Mostrar todos los partidos'}
                   </Button>
                 </div>
+                 {!isDonor && (
+                    <div className="text-destructive-foreground text-sm mt-2">
+                        {user ? (
+                            <span>Dona para ver todos los pronósticos. <Link href="https://ko-fi.com/futbolstatszone" target="_blank" rel="noopener noreferrer" className="font-bold underline">Apoya aquí</Link></span>
+                        ) : (
+                            <span><Link href="/login" className="font-bold underline">Regístrate gratis</Link> para ver el 20% de los pronósticos.</span>
+                        )}
+                    </div>
+                )}
               </Alert>
           )}
 
@@ -329,7 +353,6 @@ export function MatchesByLeague() {
               pinnedMatchIds={pinnedMatchIds}
               user={user}
               isDonor={isDonor}
-              visiblePredictionIds={visiblePredictionIds}
             />
           ) : (
             <div className="mt-6 text-center text-muted-foreground p-8 rounded-lg border border-dashed">

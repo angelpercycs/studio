@@ -121,47 +121,7 @@ const StandingsTable = ({ title, homeStats, awayStats, homeName, awayName }: { t
     );
 };
 
-const LockedPrediction = ({ isRegistered }: { isRegistered: boolean }) => {
-  if (isRegistered) {
-    // Registered user, not a donor, and this prediction is locked
-    return (
-      <div className="pt-2 text-xs">
-        <div className="font-semibold text-amber-500 flex items-center gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/20">
-          <Star className="h-4 w-4 flex-shrink-0" />
-          <div className="flex-grow">
-            <span>Dona para ver todos los pronósticos.</span>
-            <Link
-              href="https://ko-fi.com/futbolstatszone"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-1 font-bold underline hover:text-amber-400"
-            >
-              Apoya aquí
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Anonymous user
-  return (
-    <div className="pt-2 text-xs">
-      <div className="font-semibold text-primary flex items-center gap-2 p-2 rounded-md bg-primary/10 border border-primary/20">
-        <Lock className="h-4 w-4 flex-shrink-0" />
-        <div className="flex-grow">
-          <span>Regístrate para ver el 20% de los pronósticos.</span>
-          <Link href="/login" className="ml-1 font-bold underline hover:text-primary/80">
-            Regístrate gratis
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
-const MatchRow = ({ match, onPinToggle, isPinned, canViewPrediction, isRegistered }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean, canViewPrediction: boolean, isRegistered: boolean }) => {
+const MatchRow = ({ match, onPinToggle, isPinned }: { match: any, onPinToggle?: (matchId: string) => void, isPinned?: boolean }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [matchDetails, setMatchDetails] = useState<any | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -250,37 +210,29 @@ const MatchRow = ({ match, onPinToggle, isPinned, canViewPrediction, isRegistere
             <div onClick={handleOpenSheet} className="cursor-pointer hover:bg-muted/50 rounded p-2 -m-2">
                 <div className="flex items-center font-medium">
                     <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
-                    {canViewPrediction && isFavoriteTeam1 && <BlinkingLight />}
+                    {isFavoriteTeam1 && <BlinkingLight />}
                 </div>
                 <div className="flex items-center font-medium">
                     <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
-                    {canViewPrediction && isFavoriteTeam2 && <BlinkingLight />}
+                    {isFavoriteTeam2 && <BlinkingLight />}
                 </div>
             </div>
             {isFavorite ? (
-              canViewPrediction ? (
-                <div className="pt-2 text-xs">
-                  <div className="font-semibold text-primary flex items-center gap-2">
-                      <ShieldCheck className="h-3 w-3"/>
-                      <span>Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}</span>
-                  </div>
-                  {match.text_analysis && (
-                      <a href={`#analysis-${match.id}`} className="mt-1 flex items-center text-xs font-semibold text-primary/90 hover:underline">
-                          Ver análisis detallado
-                      </a>
-                  )}
+              <div className="pt-2 text-xs">
+                <div className="font-semibold text-primary flex items-center gap-2">
+                    <ShieldCheck className="h-3 w-3"/>
+                    <span>Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}</span>
                 </div>
-              ) : (
-                <LockedPrediction isRegistered={isRegistered} />
-              )
+                {match.text_analysis && (
+                    <a href={`#analysis-${match.id}`} className="mt-1 flex items-center text-xs font-semibold text-primary/90 hover:underline">
+                        Ver análisis detallado
+                    </a>
+                )}
+              </div>
             ) : null}
         </div>
         
-        {isFavorite && !canViewPrediction ? (
-          <div className="w-36 shrink-0" />
-        ) : (
-          <PredictionControls match={match} />
-        )}
+        <PredictionControls match={match} />
 
         <div className="flex flex-col items-center w-8 text-sm font-bold ml-4 text-foreground pt-1">
             <span>{match.team1_score ?? '-'}</span>
@@ -298,7 +250,7 @@ const MatchRow = ({ match, onPinToggle, isPinned, canViewPrediction, isRegistere
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
             
-            {canViewPrediction && isFavorite &&
+            {isFavorite &&
               <button 
                 onClick={(e) => { e.stopPropagation(); handleShare(); }}
                 className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-3 rounded-xl text-sm font-bold w-full shadow-lg hover:opacity-90"
@@ -309,22 +261,16 @@ const MatchRow = ({ match, onPinToggle, isPinned, canViewPrediction, isRegistere
             }
 
             {isFavorite && (
-              canViewPrediction ? (
-                <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
-                    <p className="text-sm font-bold text-primary">
-                      Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}
+              <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
+                  <p className="text-sm font-bold text-primary">
+                    Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}
+                  </p>
+                  {match.text_analysis && (
+                    <p className="text-sm text-muted-foreground">
+                        <span className="font-semibold text-primary">Análisis:</span> {match.text_analysis}
                     </p>
-                    {match.text_analysis && (
-                      <p className="text-sm text-muted-foreground">
-                          <span className="font-semibold text-primary">Análisis:</span> {match.text_analysis}
-                      </p>
-                    )}
-                </div>
-              ) : (
-                <div className="mt-4">
-                  <LockedPrediction isRegistered={isRegistered} />
-                </div>
-              )
+                  )}
+              </div>
             )}
           </SheetHeader>
           {detailsLoading ? (
@@ -375,7 +321,7 @@ const MatchRow = ({ match, onPinToggle, isPinned, canViewPrediction, isRegistere
   );
 }
 
-export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner, user, isDonor, visiblePredictionIds }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode, user: any, isDonor: boolean, visiblePredictionIds: Set<string> }) => {
+export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle, pinnedMatchIds, adBanner, user, isDonor }: { matches: any[], pinnedMatches?: any[], error: string | null, loading: boolean, onPinToggle?: (matchId: string) => void, pinnedMatchIds?: Set<string>, adBanner?: React.ReactNode, user: any, isDonor: boolean }) => {
   if (loading) {
     return <MatchDaySkeleton />;
   }
@@ -410,8 +356,6 @@ export const MatchList = ({ matches, pinnedMatches, error, loading, onPinToggle,
         match={match}
         onPinToggle={onPinToggle}
         isPinned={pinnedMatchIds?.has(match.id)}
-        canViewPrediction={isDonor || (!!user && visiblePredictionIds.has(match.id))}
-        isRegistered={!!user}
       />
   );
  
