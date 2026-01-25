@@ -150,6 +150,10 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
   const isFavoriteTeam2 = match.favorite === 'team2';
   
   const handleOpenSheet = useCallback(async () => {
+    if (!user) {
+        setShowRegisterAlert(true);
+        return;
+    }
     setIsSheetOpen(true);
     if (!matchDetails) {
       setDetailsLoading(true);
@@ -162,14 +166,10 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
       }
       setDetailsLoading(false);
     }
-  }, [match, matchDetails]);
+  }, [match, matchDetails, user]);
 
   const handleRowClick = () => {
-      if (!user) {
-          setShowRegisterAlert(true);
-      } else {
-          handleOpenSheet();
-      }
+    handleOpenSheet();
   };
 
   const handleShare = async () => {
@@ -234,14 +234,14 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
             <div onClick={handleRowClick} className="cursor-pointer hover:bg-muted/50 rounded p-2 -m-2">
                 <div className="flex items-center font-medium">
                     <span>{match.team1?.name ?? 'Equipo no encontrado'}</span>
-                    {hasPrediction && !shouldHidePredictionUI && isFavoriteTeam1 && <BlinkingLight />}
+                    {hasPrediction && canViewPrediction && isFavoriteTeam1 && <BlinkingLight />}
                 </div>
                 <div className="flex items-center font-medium">
                     <span>{match.team2?.name ?? 'Equipo no encontrado'}</span>
-                     {hasPrediction && !shouldHidePredictionUI && isFavoriteTeam2 && <BlinkingLight />}
+                     {hasPrediction && canViewPrediction && isFavoriteTeam2 && <BlinkingLight />}
                 </div>
             </div>
-            {hasPrediction && !shouldHidePredictionUI ? (
+            {hasPrediction && canViewPrediction ? (
               <div className="pt-2 text-xs">
                 <div className="font-semibold text-primary flex items-center gap-2">
                     <ShieldCheck className="h-3 w-3"/>
@@ -256,7 +256,9 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
             ) : null}
         </div>
         
-        {shouldHidePredictionUI ? (
+        {(showAll || !shouldHidePredictionUI) ? (
+            <PredictionControls match={match} />
+        ) : (
           <div className="sm:flex text-xs text-center text-muted-foreground w-36 justify-center items-center">
             <Button asChild variant="outline" size="sm" className="h-full w-full">
               <Link href={user ? "https://ko-fi.com/futbolstatszone" : "/login"} target={user ? "_blank" : "_self"} rel={user ? "noopener noreferrer" : undefined}>
@@ -265,8 +267,6 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
               </Link>
             </Button>
           </div>
-        ) : (
-          !hasPrediction || (hasPrediction && showAll) ? <PredictionControls match={match} /> : null
         )}
 
 
@@ -286,7 +286,7 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
                 <span className="font-semibold">Todas las estadísticas son Pre-Jornada</span>
             </SheetDescription>
             
-            {hasPrediction && !shouldHidePredictionUI &&
+            {hasPrediction && canViewPrediction &&
               <button 
                 onClick={(e) => { e.stopPropagation(); handleShare(); }}
                 className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-3 rounded-xl text-sm font-bold w-full shadow-lg hover:opacity-90"
@@ -296,7 +296,7 @@ const MatchRow = ({ match, onPinToggle, isPinned, user, canViewPrediction, showA
               </button>
             }
 
-            {hasPrediction && !shouldHidePredictionUI && (
+            {hasPrediction && canViewPrediction && (
               <div className="mt-4 space-y-2 text-left bg-primary/5 p-3 rounded-lg border border-primary/20">
                   <p className="text-sm font-bold text-primary">
                     Pronóstico: {isFavoriteTeam1 ? 'Gana Local' : 'Gana Visita'}
